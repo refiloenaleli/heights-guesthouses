@@ -16,7 +16,7 @@ export function Footer() {
             <img
               src={logo}
               alt={houseName}
-              className="mb-4 h-20 w-20 rounded-full border-2 border-gold/60 object-contain bg-warm-white"
+              className="mb-4 h-20 w-20 object-contain"
             />
             <p className="text-sm font-heading text-warm-white mb-2">{houseName}</p>
             <p className="text-xs leading-relaxed text-warm-white/60">
@@ -52,8 +52,9 @@ export function Footer() {
               <a
                 href={`tel:${phoneNumber.replace(/[^0-9+]/g, "")}`}
                 className="flex items-center gap-2 text-sm text-warm-white/60 hover:text-gold-light"
+                aria-label={`Call us at ${phoneNumber}`}
               >
-                <Phone className="h-4 w-4 text-gold-dark" /> {phoneNumber}
+                <Phone className="h-4 w-4 text-gold-dark" />
               </a>
               <a
                 href={`mailto:${email}`}

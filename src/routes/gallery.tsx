@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { supabase } from "@/integrations/supabase/client";
 import ghSingleRoom from "@/assets/gh-single-room.jpg";
@@ -63,8 +64,7 @@ function GalleryPage() {
 
     supabase
       .from("gallery_images")
-      .select("image_url, alt_text, category")
-      .eq("guest_house", activeHouse)
+      .select("image_url, alt_text, category, guest_house")
       .order("display_order")
       .then(({ data, error }) => {
         if (ignore) return;
@@ -76,7 +76,7 @@ function GalleryPage() {
         setUploadedImages(
           data.map((image) => ({
             src: image.image_url,
-            alt: `${houseName} — ${image.alt_text}`,
+            alt: `${image.guest_house === "greater-heights" ? "Greater Heights" : "New Heights"} — ${image.alt_text}`,
             category: image.category,
           })),
         );
@@ -85,10 +85,9 @@ function GalleryPage() {
     return () => {
       ignore = true;
     };
-  }, [activeHouse, houseName]);
+  }, []);
 
-  const fallbackImages =
-    activeHouse === "greater-heights" ? greaterHeightsImages : newHeightsImages;
+  const fallbackImages = [...greaterHeightsImages, ...newHeightsImages];
   const images = uploadedImages.length > 0 ? uploadedImages : fallbackImages;
   const categories = Array.from(
     new Set([...defaultCategories, ...images.map((img) => img.category)]),
@@ -98,6 +97,18 @@ function GalleryPage() {
 
   return (
     <>
+{/* Back to Properties */}
+      <div className="bg-charcoal/95 border-b border-gold/10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            All Properties
+          </Link>
+        </div>
+      </div>
       <section className="bg-charcoal px-4 pb-20 pt-36 text-center">
         <span className="section-label text-gold-light">A GLIMPSE OF THE HEIGHTS</span>
         <h1 className="section-title text-warm-white mt-2">See where you'll stay.</h1>

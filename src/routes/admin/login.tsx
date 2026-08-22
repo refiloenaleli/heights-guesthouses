@@ -69,7 +69,7 @@ function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-charcoal flex items-center justify-center px-4 -mt-[88px] pt-[88px]">
+    <div className="min-h-screen bg-charcoal flex items-center justify-center px-4 -mt-[60px] pt-[60px]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center border border-gold-dark">

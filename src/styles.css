@@ -230,6 +230,8 @@
 
   .font-accent {
     font-family: var(--font-accent);
+    font-size: 1.25rem;
+    line-height: 1.2;
   }
 
   .hero-overlay {

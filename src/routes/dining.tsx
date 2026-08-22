@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, X, ArrowLeft } from "lucide-react";
 import diningInterior from "@/assets/dining.jpg";
 import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
 import ghDining from "@/assets/gh-dining.jpg";
@@ -81,17 +81,37 @@ function DiningPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative -mt-[88px] h-[50vh] min-h-[350px]">
+      <section className="relative -mt-[60px] h-[85vh] min-h-[600px]">
         <img src={heroImage} alt="Dining" className="absolute inset-0 h-full w-full object-cover" />
         <div className="hero-overlay absolute inset-0" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center px-4">
-          <span className="section-label text-gold-light">AT THE TABLE</span>
-          <h1 className="section-title text-warm-white mt-2">Dining at the Heights</h1>
-          <p className="mt-4 max-w-xl text-sm text-warm-white/80">
-            Good food. Unhurried moments. A table worth lingering at.
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="section-label text-gold-light tracking-[0.3em]">AT THE TABLE</span>
+            <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl text-warm-white font-normal tracking-wide mt-4 mb-4">
+              Dining at the Heights
+            </h1>
+            <p className="mt-4 max-w-xl mx-auto text-sm md:text-base text-warm-white/80 leading-relaxed">
+              Good food. Unhurried moments. A table worth lingering at.
+            </p>
+          </motion.div>
         </div>
       </section>
+{/* Back to Properties */}
+      <div className="bg-charcoal/95 border-b border-gold/10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            All Properties
+          </Link>
+        </div>
+      </div>
 
       <section className="bg-cream py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-[1.05fr_0.95fr]">
@@ -299,7 +319,7 @@ function DiningPage() {
                   alt={`${houseName} ${meal} dining selection`}
                   className="h-64 w-full object-cover md:h-80"
                 />
-                <p className="font-accent mt-3 text-lg text-gold-dark">
+                <p className="font-accent mt-3 text-xl text-gold-dark">
                   {meal === "breakfast"
                     ? "Good mornings."
                     : meal === "lunch"

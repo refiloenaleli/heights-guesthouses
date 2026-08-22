@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { Star, ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -74,6 +74,18 @@ function ReviewsPage() {
 
   return (
     <>
+{/* Back to Properties */}
+      <div className="bg-charcoal/95 border-b border-gold/10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            All Properties
+          </Link>
+        </div>
+      </div>
       <section className="bg-charcoal px-4 pb-20 pt-36 text-center">
         <span className="section-label text-gold-light">WORDS FROM OUR GUESTS</span>
         <h1 className="section-title text-warm-white mt-2">The stay speaks for itself.</h1>

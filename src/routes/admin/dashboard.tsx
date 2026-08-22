@@ -76,7 +76,7 @@ function AdminDashboard() {
 
   if (isAdmin === null)
     return (
-      <div className="min-h-screen bg-charcoal flex items-center justify-center -mt-[88px] pt-[88px]">
+      <div className="min-h-screen bg-charcoal flex items-center justify-center -mt-[60px] pt-[60px]">
         <p className="text-warm-white/60">Loading...</p>
       </div>
     );
@@ -95,7 +95,7 @@ function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-background -mt-[88px] pt-[88px]">
+    <div className="min-h-screen bg-background -mt-[60px] pt-[60px]">
       <div className="bg-charcoal border-b border-gold/20">
         <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">

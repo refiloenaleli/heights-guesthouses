@@ -14,6 +14,7 @@ import {
   MessageCircle,
   Sparkles,
   ChefHat,
+  ArrowLeft,
 } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { useEffect, useState } from "react";
@@ -85,7 +86,7 @@ function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative h-[85vh] min-h-[600px] -mt-[88px]">
+      <section className="relative h-[85vh] min-h-[600px] -mt-[60px]">
         <img
           src={heroImage}
           alt={houseName}
@@ -126,6 +127,18 @@ function HomePage() {
             </div>
           </motion.div>
         </div>
+{/* Back to Properties */}
+      <div className="bg-charcoal/95 border-b border-gold/10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            All Properties
+          </Link>
+        </div>
+      </div>
       </section>
 
       {/* Promotions Banner */}
@@ -393,7 +406,7 @@ function HomePage() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <a
-                    href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hello, I would like to make a booking at Greater Heights Guest House.")}`}
+                    href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, I would like to make a booking at ${houseName}.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-gold inline-flex items-center justify-center gap-2"
@@ -404,16 +417,19 @@ function HomePage() {
                   <a
                     href={`tel:${phoneNumber.replace(/[^0-9+]/g, "")}`}
                     className="btn-gold-outline inline-flex items-center justify-center gap-2"
+                    aria-label={`Call us at ${phoneNumber}`}
                   >
                     <Phone className="h-4 w-4" />
-                    Call {phoneNumber}
                   </a>
                 </div>
               </div>
               <div className="h-80 bg-cream-dark border border-border overflow-hidden">
                 <iframe
-                  title="Greater Heights Guest House Location"
-                  src="https://www.google.com/maps?q=29.3271667,27.4882778&z=15&output=embed"
+                  title={`${houseName} Location`}
+                  src={activeHouse === "greater-heights"
+                    ? "https://www.google.com/maps?q=29.3271667,27.4882778&z=15&output=embed"
+                    : "https://www.google.com/maps?q=29.3167,27.4833&z=15&output=embed"
+                  }
                   className="w-full h-full border-0"
                   loading="lazy"
                   allowFullScreen

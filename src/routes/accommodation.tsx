@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { AirVent, Building2, Coffee, Refrigerator, Users } from "lucide-react";
+import { AirVent, Building2, Coffee, Refrigerator, Users, ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { supabase } from "@/integrations/supabase/client";
 import { RoomCard } from "@/components/RoomCard";
@@ -170,6 +170,18 @@ function AccommodationPage() {
           </motion.div>
         </div>
       </section>
+{/* Back to Properties */}
+      <div className="bg-charcoal/95 border-b border-gold/10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            All Properties
+          </Link>
+        </div>
+      </div>
 
       <section className="bg-cream py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 md:grid-cols-2">
@@ -223,7 +235,7 @@ function AccommodationPage() {
               alt="Comfortable guest room"
               className="h-[360px] w-full object-cover md:h-[440px]"
             />
-            <div className="font-accent absolute bottom-5 left-5 bg-charcoal px-4 py-3 text-lg text-gold-light">
+            <div className="font-accent absolute bottom-5 left-5 bg-charcoal px-4 py-3 text-xl text-gold-light">
               {activeHouse === "greater-heights"
                 ? "Rest well. Wake refreshed."
                 : "Arrive together. Stay connected."}
@@ -259,7 +271,7 @@ function AccommodationPage() {
                     openRoomModal({ ...room, price: roomRates[room.room_type] || room.price })
                   }
                 />
-                <p className="font-accent mt-3 text-center text-lg text-gold-dark">
+                <p className="font-accent mt-3 text-center text-xl text-gold-dark">
                   {roomAccents[room.room_type]}
                 </p>
               </div>

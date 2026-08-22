@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,7 +59,7 @@ function BookingPage() {
     await saveBooking();
     setSubmitting(false);
     window.open(
-      `https://wa.me/${whatsappNumber.replace(/\+/g, "")}?text=${encodeURIComponent(bookingMessage)}`,
+      `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(bookingMessage)}`,
     );
     setSubmitted(true);
   };
@@ -75,6 +76,18 @@ function BookingPage() {
 
   return (
     <>
+{/* Back to Properties */}
+      <div className="bg-charcoal/95 border-b border-gold/10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            All Properties
+          </Link>
+        </div>
+      </div>
       <section className="bg-charcoal px-4 pb-20 pt-36 text-center">
         <span className="section-label text-gold-light">YOUR STAY STARTS HERE</span>
         <h1 className="section-title text-warm-white mt-2">Make yourself at home.</h1>

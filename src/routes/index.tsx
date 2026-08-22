@@ -68,7 +68,7 @@ function PropertySelectPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative h-[70vh] min-h-[500px] -mt-[88px]">
+      <section className="relative h-[70vh] min-h-[500px] -mt-[60px]">
         <img
           src={ghExterior}
           alt="Heights Guest Houses"
@@ -132,7 +132,7 @@ function PropertySelectPage() {
               giving you a choice suited to the size and nature of your stay or event — from an
               intimate weekend to a large conference, all from within the same trusted group.
             </p>
-            <p className="font-accent mt-8 text-xl text-gold-dark">
+            <p className="font-accent mt-8 text-2xl text-gold-dark">
               Stay somewhere that feels considered.
             </p>
           </motion.div>
@@ -173,7 +173,7 @@ function PropertySelectPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/20 to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                     <div>
-                      <span className="font-accent text-lg text-gold-light">
+                      <span className="font-accent text-xl text-gold-light">
                         {property.tagline}
                       </span>
                       <h3 className="font-heading text-2xl text-warm-white mt-1">

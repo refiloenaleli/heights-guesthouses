@@ -1,6 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Angle&family=Estarossa&family=Lato:wght@300;400;500;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;500;700&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -53,15 +53,16 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-body: 'Lato', system-ui, sans-serif;
+  --font-heading: "Angle", Georgia, serif;
+  --font-accent: "Estarossa", "Brush Script MT", cursive;
+  --font-body: "Lato", system-ui, sans-serif;
 }
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.985 0.005 80);
-  --foreground: oklch(0.25 0.02 50);
-  --card: oklch(1 0 0);
+  --background: oklch(0.975 0.012 82);
+  --foreground: oklch(0.22 0.025 48);
+  --card: oklch(0.995 0.004 82);
   --card-foreground: oklch(0.25 0.02 50);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.25 0.02 50);
@@ -75,19 +76,19 @@
   --accent-foreground: oklch(0.3 0.02 50);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.99 0.005 80);
-  --border: oklch(0.9 0.015 80);
-  --input: oklch(0.9 0.015 80);
-  --ring: oklch(0.55 0.12 65);
+  --border: oklch(0.86 0.022 74);
+  --input: oklch(0.86 0.022 74);
+  --ring: oklch(0.62 0.12 68);
 
   /* Brand colors */
-  --gold: oklch(0.7 0.14 70);
-  --gold-light: oklch(0.82 0.1 75);
-  --gold-dark: oklch(0.55 0.12 65);
-  --cream: oklch(0.97 0.01 85);
-  --cream-dark: oklch(0.93 0.015 80);
-  --charcoal: oklch(0.25 0.015 50);
-  --charcoal-light: oklch(0.35 0.015 50);
-  --warm-white: oklch(0.985 0.005 80);
+  --gold: oklch(0.72 0.14 70);
+  --gold-light: oklch(0.84 0.105 78);
+  --gold-dark: oklch(0.57 0.13 65);
+  --cream: oklch(0.955 0.018 84);
+  --cream-dark: oklch(0.91 0.025 78);
+  --charcoal: oklch(0.205 0.02 48);
+  --charcoal-light: oklch(0.3 0.022 48);
+  --warm-white: oklch(0.985 0.006 84);
 
   --chart-1: oklch(0.7 0.14 70);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -111,12 +112,25 @@
 
   body {
     background-color: var(--color-background);
+    background-image: radial-gradient(oklch(0.32 0.02 50 / 4%) 0.55px, transparent 0.55px);
+    background-size: 8px 8px;
     color: var(--color-foreground);
     font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-heading);
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-charcoal);
   }
 }
 
@@ -130,12 +144,18 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     font-size: 0.75rem;
-    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px oklch(0.2 0.02 48 / 12%);
+    transition:
+      transform 0.3s ease,
+      background-color 0.3s ease,
+      box-shadow 0.3s ease;
     border: 1px solid var(--color-gold-dark);
   }
   .btn-gold:hover {
     background-color: var(--color-gold);
     border-color: var(--color-gold);
+    box-shadow: 0 12px 26px oklch(0.2 0.02 48 / 18%);
+    transform: translateY(-2px);
   }
 
   .btn-gold-outline {
@@ -147,7 +167,10 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     font-size: 0.75rem;
-    transition: all 0.3s ease;
+    transition:
+      color 0.3s ease,
+      background-color 0.3s ease,
+      border-color 0.3s ease;
     border: 1px solid var(--color-charcoal);
   }
   .btn-gold-outline:hover {
@@ -161,7 +184,8 @@
     letter-spacing: 0.25em;
     text-transform: uppercase;
     color: var(--color-gold-dark);
-    font-weight: 500;
+    font-weight: 600;
+    line-height: 1.4;
   }
 
   .section-title {
@@ -169,11 +193,34 @@
     font-size: 2.5rem;
     font-weight: 400;
     color: var(--color-charcoal);
-    line-height: 1.2;
+    line-height: 1.12;
+    letter-spacing: 0.01em;
+  }
+
+  .font-accent {
+    font-family: var(--font-accent);
   }
 
   .hero-overlay {
-    background: linear-gradient(to bottom, oklch(0 0 0 / 40%), oklch(0 0 0 / 60%));
+    background: linear-gradient(
+      115deg,
+      oklch(0.08 0.02 45 / 68%),
+      oklch(0.08 0.02 45 / 18%) 62%,
+      oklch(0.08 0.02 45 / 55%)
+    );
+  }
+
+  .bg-card {
+    box-shadow: 0 14px 34px oklch(0.22 0.025 48 / 7%);
+  }
+
+  img {
+    image-rendering: auto;
+  }
+
+  a,
+  button {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 /* Hide any Lovable branding */

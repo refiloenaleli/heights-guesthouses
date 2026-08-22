@@ -1,19 +1,24 @@
 import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
-import netlify from "@netlify/vite-plugin-tanstack-start";
 import tailwindcss from "@tailwindcss/vite";
+
+// TanStack Router file-based route generation
+import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
   server: {
+    host: "0.0.0.0",
     port: 8080,
   },
   plugins: [
-    tailwindcss(), // ← This is the key line for Tailwind v4
+    TanStackRouterVite({
+      // Auto-generate routeTree.gen.ts from src/routes/
+      routesDirectory: "./src/routes",
+      generatedRouteTree: "./src/routeTree.gen.ts",
+    }),
+    tailwindcss(),
     tsconfigPaths(),
-    tanstackStart(),
     react(),
-    netlify(),
   ],
 });

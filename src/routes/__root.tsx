@@ -17,7 +17,7 @@ function NotFoundComponent() {
             The page you're looking for doesn't exist or has been moved.
           </p>
           <div className="mt-6">
-            <Link to="/" className="btn-gold inline-block">
+            <Link to="/home" className="btn-gold inline-block">
               Go home
             </Link>
           </div>
@@ -34,14 +34,18 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Greater Heights & New Heights Guest Houses | Luxury Accommodation" },
-      { name: "description", content: "Experience luxury accommodation at Greater Heights & New Heights Guest Houses in Lesotho. Modern rooms, fine dining, and exceptional hospitality." },
+      {
+        name: "description",
+        content:
+          "Experience luxury accommodation at Greater Heights & New Heights Guest Houses in Lesotho. Modern rooms, fine dining, and exceptional hospitality.",
+      },
       { name: "author", content: "Heights Guest Houses" },
       { property: "og:title", content: "Greater Heights & New Heights Guest Houses" },
       { property: "og:description", content: "Luxury guest house accommodation in Lesotho" },
       { property: "og:type", content: "website" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss }
+      { rel: "stylesheet", href: appCss },
       // ✅ NO favicon here at all
     ],
   }),

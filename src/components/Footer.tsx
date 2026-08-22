@@ -5,7 +5,7 @@ import ghLogo from "@/assets/gh-logo.jpg";
 import nhLogo from "@/assets/nh-logo.jpg";
 
 export function Footer() {
-  const { houseName, email, whatsappNumber, activeHouse } = useGuestHouse();
+  const { houseName, email, whatsappNumber, phoneNumber, address, activeHouse } = useGuestHouse();
   const logo = activeHouse === "greater-heights" ? ghLogo : nhLogo;
 
   return (
@@ -24,13 +24,18 @@ export function Footer() {
             <h4 className="section-label text-gold-light mb-4">Quick Links</h4>
             <div className="flex flex-col gap-2">
               {[
-                { to: "/" as const, label: "Home" },
+                { to: "/home" as const, label: "Home" },
                 { to: "/accommodation" as const, label: "Accommodation" },
                 { to: "/dining" as const, label: "Dining & Menus" },
                 { to: "/gallery" as const, label: "Gallery" },
+                { to: "/about" as const, label: "About" },
                 { to: "/booking" as const, label: "Book Now" },
               ].map((link) => (
-                <Link key={link.to} to={link.to} className="text-sm text-warm-white/60 hover:text-gold-light transition-colors">
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="text-sm text-warm-white/60 hover:text-gold-light transition-colors"
+                >
                   {link.label}
                 </Link>
               ))}
@@ -40,14 +45,20 @@ export function Footer() {
           <div>
             <h4 className="section-label text-gold-light mb-4">Contact Us</h4>
             <div className="flex flex-col gap-3">
-              <a href={`tel:${whatsappNumber}`} className="flex items-center gap-2 text-sm text-warm-white/60 hover:text-gold-light">
-                <Phone className="h-4 w-4 text-gold-dark" /> {whatsappNumber}
+              <a
+                href={`tel:${phoneNumber.replace(/[^0-9+]/g, "")}`}
+                className="flex items-center gap-2 text-sm text-warm-white/60 hover:text-gold-light"
+              >
+                <Phone className="h-4 w-4 text-gold-dark" /> {phoneNumber}
               </a>
-              <a href={`mailto:${email}`} className="flex items-center gap-2 text-sm text-warm-white/60 hover:text-gold-light">
+              <a
+                href={`mailto:${email}`}
+                className="flex items-center gap-2 text-sm text-warm-white/60 hover:text-gold-light"
+              >
                 <Mail className="h-4 w-4 text-gold-dark" /> {email}
               </a>
               <div className="flex items-start gap-2 text-sm text-warm-white/60">
-                <MapPin className="h-4 w-4 mt-0.5 text-gold-dark" /> Maseru, Lesotho
+                <MapPin className="h-4 w-4 mt-0.5 text-gold-dark" /> {address}
               </div>
             </div>
           </div>
@@ -56,14 +67,18 @@ export function Footer() {
             <h4 className="section-label text-gold-light mb-4">Our Properties</h4>
             <p className="text-sm text-warm-white/60 mb-2">Greater Heights Guest House</p>
             <p className="text-sm text-warm-white/60 mb-4">New Heights Guest House</p>
-            <Link to="/booking" className="btn-gold-outline text-warm-white/80 border-gold-dark/50 hover:bg-gold-dark hover:text-warm-white text-xs inline-block">
+            <Link
+              to="/booking"
+              className="btn-gold-outline text-warm-white/80 border-gold-dark/50 hover:bg-gold-dark hover:text-warm-white text-xs inline-block"
+            >
               Book Now
             </Link>
           </div>
         </div>
 
         <div className="mt-12 border-t border-gold/10 pt-6 text-center text-xs text-warm-white/40">
-          © {new Date().getFullYear()} Greater Heights & New Heights Guest Houses. All rights reserved.
+          © {new Date().getFullYear()} Greater Heights & New Heights Guest Houses. All rights
+          reserved.
         </div>
       </div>
     </footer>

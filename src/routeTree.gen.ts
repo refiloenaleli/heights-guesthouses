@@ -10,11 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as DiningRouteImport } from './routes/dining'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as AccommodationRouteImport } from './routes/accommodation'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
@@ -22,6 +24,11 @@ import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 const ReviewsRoute = ReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GalleryRoute = GalleryRouteImport.update({
@@ -49,6 +56,11 @@ const AccommodationRoute = AccommodationRouteImport.update({
   path: '/accommodation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,22 +79,26 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/accommodation': typeof AccommodationRoute
   '/booking': typeof BookingRoute
   '/contact': typeof ContactRoute
   '/dining': typeof DiningRoute
   '/gallery': typeof GalleryRoute
+  '/home': typeof HomeRoute
   '/reviews': typeof ReviewsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/accommodation': typeof AccommodationRoute
   '/booking': typeof BookingRoute
   '/contact': typeof ContactRoute
   '/dining': typeof DiningRoute
   '/gallery': typeof GalleryRoute
+  '/home': typeof HomeRoute
   '/reviews': typeof ReviewsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
@@ -90,11 +106,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/accommodation': typeof AccommodationRoute
   '/booking': typeof BookingRoute
   '/contact': typeof ContactRoute
   '/dining': typeof DiningRoute
   '/gallery': typeof GalleryRoute
+  '/home': typeof HomeRoute
   '/reviews': typeof ReviewsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
@@ -103,33 +121,39 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/accommodation'
     | '/booking'
     | '/contact'
     | '/dining'
     | '/gallery'
+    | '/home'
     | '/reviews'
     | '/admin/dashboard'
     | '/admin/login'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/accommodation'
     | '/booking'
     | '/contact'
     | '/dining'
     | '/gallery'
+    | '/home'
     | '/reviews'
     | '/admin/dashboard'
     | '/admin/login'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/accommodation'
     | '/booking'
     | '/contact'
     | '/dining'
     | '/gallery'
+    | '/home'
     | '/reviews'
     | '/admin/dashboard'
     | '/admin/login'
@@ -137,11 +161,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AccommodationRoute: typeof AccommodationRoute
   BookingRoute: typeof BookingRoute
   ContactRoute: typeof ContactRoute
   DiningRoute: typeof DiningRoute
   GalleryRoute: typeof GalleryRoute
+  HomeRoute: typeof HomeRoute
   ReviewsRoute: typeof ReviewsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -154,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/reviews'
       fullPath: '/reviews'
       preLoaderRoute: typeof ReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gallery': {
@@ -191,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccommodationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -217,11 +257,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AccommodationRoute: AccommodationRoute,
   BookingRoute: BookingRoute,
   ContactRoute: ContactRoute,
   DiningRoute: DiningRoute,
   GalleryRoute: GalleryRoute,
+  HomeRoute: HomeRoute,
   ReviewsRoute: ReviewsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminLoginRoute: AdminLoginRoute,
@@ -229,12 +271,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

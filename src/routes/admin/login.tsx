@@ -79,7 +79,10 @@ function AdminLoginPage() {
           <p className="text-sm text-warm-white/60 mt-2">Sign in to manage your guest houses</p>
         </div>
 
-        <form onSubmit={handleLogin} className="bg-charcoal-light border border-gold/20 p-8 space-y-5">
+        <form
+          onSubmit={handleLogin}
+          className="bg-charcoal-light border border-gold/20 p-8 space-y-5"
+        >
           {error && (
             <div className="bg-destructive/20 border border-destructive/30 text-destructive-foreground px-4 py-3 text-sm">
               {error}
@@ -87,7 +90,9 @@ function AdminLoginPage() {
           )}
 
           <div>
-            <label className="text-xs tracking-widest uppercase text-gold-light mb-1 block">Email</label>
+            <label className="text-xs tracking-widest uppercase text-gold-light mb-1 block">
+              Email
+            </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold-dark/50" />
               <input
@@ -102,7 +107,9 @@ function AdminLoginPage() {
           </div>
 
           <div>
-            <label className="text-xs tracking-widest uppercase text-gold-light mb-1 block">Password</label>
+            <label className="text-xs tracking-widest uppercase text-gold-light mb-1 block">
+              Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gold-dark/50" />
               <input
@@ -123,17 +130,16 @@ function AdminLoginPage() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-gold disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading} className="w-full btn-gold disabled:opacity-50">
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         <div className="text-center mt-6">
-          <Link to="/" className="text-xs text-gold-light/60 hover:text-gold-light tracking-wider uppercase">
+          <Link
+            to="/home"
+            className="text-xs text-gold-light/60 hover:text-gold-light tracking-wider uppercase"
+          >
             ← Back to Website
           </Link>
         </div>

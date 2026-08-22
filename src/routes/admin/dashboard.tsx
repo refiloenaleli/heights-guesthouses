@@ -2,36 +2,84 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  CalendarDays, MessageSquare, Image, Phone, LogOut, Check, X,
-  Star, Upload, Trash2, Settings, Users, Home, Tag, UtensilsCrossed, DollarSign, Plus, Edit, Save,
+  CalendarDays,
+  MessageSquare,
+  Image,
+  Phone,
+  LogOut,
+  Check,
+  X,
+  Star,
+  Upload,
+  Trash2,
+  Settings,
+  Users,
+  Home,
+  Tag,
+  UtensilsCrossed,
+  DollarSign,
+  Plus,
+  Edit,
+  Save,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/dashboard")({
   component: AdminDashboard,
 });
 
-type Tab = "bookings" | "reviews" | "gallery" | "contacts" | "promotions" | "menus" | "prices";
+type Tab =
+  | "bookings"
+  | "reviews"
+  | "gallery"
+  | "contacts"
+  | "promotions"
+  | "menus"
+  | "prices"
+  | "room-images"
+  | "dining-banners"
+  | "menu-images";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("bookings");
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [selectedHouse, setSelectedHouse] = useState<"greater-heights" | "new-heights">("greater-heights");
+  const [selectedHouse, setSelectedHouse] = useState<"greater-heights" | "new-heights">(
+    "greater-heights",
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate({ to: "/admin/login" }); return; }
-      const { data } = await supabase.rpc("has_role", { _user_id: session.user.id, _role: "admin" });
-      if (!data) { navigate({ to: "/admin/login" }); return; }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        navigate({ to: "/admin/login" });
+        return;
+      }
+      const { data } = await supabase.rpc("has_role", {
+        _user_id: session.user.id,
+        _role: "admin",
+      });
+      if (!data) {
+        navigate({ to: "/admin/login" });
+        return;
+      }
       setIsAdmin(true);
     };
     checkAuth();
   }, [navigate]);
 
-  const handleLogout = async () => { await supabase.auth.signOut(); navigate({ to: "/admin/login" }); };
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/admin/login" });
+  };
 
-  if (isAdmin === null) return <div className="min-h-screen bg-charcoal flex items-center justify-center -mt-[88px] pt-[88px]"><p className="text-warm-white/60">Loading...</p></div>;
+  if (isAdmin === null)
+    return (
+      <div className="min-h-screen bg-charcoal flex items-center justify-center -mt-[88px] pt-[88px]">
+        <p className="text-warm-white/60">Loading...</p>
+      </div>
+    );
 
   const tabs: { key: Tab; label: string; icon: typeof CalendarDays }[] = [
     { key: "bookings", label: "Bookings", icon: CalendarDays },
@@ -41,6 +89,9 @@ function AdminDashboard() {
     { key: "promotions", label: "Promos", icon: Tag },
     { key: "menus", label: "Menus", icon: UtensilsCrossed },
     { key: "prices", label: "Prices", icon: DollarSign },
+    { key: "room-images", label: "Room Images", icon: Image },
+    { key: "dining-banners", label: "Dining Banners", icon: Image },
+    { key: "menu-images", label: "Menu Images", icon: Image },
   ];
 
   return (
@@ -52,12 +103,26 @@ function AdminDashboard() {
             <h1 className="font-heading text-xl text-warm-white">Admin Dashboard</h1>
           </div>
           <div className="flex items-center gap-4">
-            <select value={selectedHouse} onChange={(e) => setSelectedHouse(e.target.value as any)} className="bg-charcoal-light border border-gold/20 text-warm-white text-xs px-3 py-2 focus:outline-none focus:border-gold-dark">
+            <select
+              value={selectedHouse}
+              onChange={(e) => setSelectedHouse(e.target.value as any)}
+              className="bg-charcoal-light border border-gold/20 text-warm-white text-xs px-3 py-2 focus:outline-none focus:border-gold-dark"
+            >
               <option value="greater-heights">Greater Heights</option>
               <option value="new-heights">New Heights</option>
             </select>
-            <Link to="/" className="text-xs text-gold-light/60 hover:text-gold-light flex items-center gap-1"><Home className="h-3 w-3" /> Site</Link>
-            <button onClick={handleLogout} className="flex items-center gap-1 text-xs text-warm-white/60 hover:text-warm-white"><LogOut className="h-3 w-3" /> Logout</button>
+            <Link
+              to="/home"
+              className="text-xs text-gold-light/60 hover:text-gold-light flex items-center gap-1"
+            >
+              <Home className="h-3 w-3" /> Site
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 text-xs text-warm-white/60 hover:text-warm-white"
+            >
+              <LogOut className="h-3 w-3" /> Logout
+            </button>
           </div>
         </div>
       </div>
@@ -66,8 +131,13 @@ function AdminDashboard() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex gap-0">
             {tabs.map((tab) => (
-              <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex items-center gap-2 px-4 py-3 text-xs tracking-widest uppercase border-b-2 transition-all whitespace-nowrap ${activeTab === tab.key ? "border-gold-dark text-gold-dark font-semibold" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-                <tab.icon className="h-4 w-4" />{tab.label}
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 px-4 py-3 text-xs tracking-widest uppercase border-b-2 transition-all whitespace-nowrap ${activeTab === tab.key ? "border-gold-dark text-gold-dark font-semibold" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+              >
+                <tab.icon className="h-4 w-4" />
+                {tab.label}
               </button>
             ))}
           </div>
@@ -82,6 +152,9 @@ function AdminDashboard() {
         {activeTab === "promotions" && <PromotionsPanel house={selectedHouse} />}
         {activeTab === "menus" && <MenusPanel house={selectedHouse} />}
         {activeTab === "prices" && <PricesPanel house={selectedHouse} />}
+        {activeTab === "room-images" && <RoomImagesPanel house={selectedHouse} />}
+        {activeTab === "dining-banners" && <DiningBannersPanel house={selectedHouse} />}
+        {activeTab === "menu-images" && <MenuImagesPanel house={selectedHouse} />}
       </div>
     </div>
   );
@@ -94,35 +167,83 @@ function BookingsPanel({ house }: { house: string }) {
 
   const fetch = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("bookings").select("*").eq("guest_house", house).order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("guest_house", house)
+      .order("created_at", { ascending: false });
     setBookings(data || []);
     setLoading(false);
   }, [house]);
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
 
-  const updateStatus = async (id: string, status: string) => { await supabase.from("bookings").update({ status }).eq("id", id); fetch(); };
+  const updateStatus = async (id: string, status: string) => {
+    await supabase.from("bookings").update({ status }).eq("id", id);
+    fetch();
+  };
 
   if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
   return (
     <div>
       <h2 className="font-heading text-2xl text-foreground mb-6">Manage Bookings</h2>
-      {bookings.length === 0 ? <p className="text-sm text-muted-foreground">No bookings yet.</p> : (
+      {bookings.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No bookings yet.</p>
+      ) : (
         <div className="space-y-4">
           {bookings.map((b) => (
-            <div key={b.id} className="bg-card border border-border p-5 flex flex-col md:flex-row md:items-center gap-4">
+            <div
+              key={b.id}
+              className="bg-card border border-border p-5 flex flex-col md:flex-row md:items-center gap-4"
+            >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Users className="h-4 w-4 text-gold-dark" />
                   <h3 className="text-sm font-semibold text-foreground">{b.guest_name}</h3>
-                  <span className={`text-[10px] px-2 py-0.5 uppercase tracking-wider font-medium ${b.status === "confirmed" ? "bg-green-100 text-green-700" : b.status === "cancelled" ? "bg-red-100 text-red-700" : b.status === "completed" ? "bg-blue-100 text-blue-700" : "bg-yellow-100 text-yellow-700"}`}>{b.status}</span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 uppercase tracking-wider font-medium ${b.status === "confirmed" ? "bg-green-100 text-green-700" : b.status === "cancelled" ? "bg-red-100 text-red-700" : b.status === "completed" ? "bg-blue-100 text-blue-700" : "bg-yellow-100 text-yellow-700"}`}
+                  >
+                    {b.status}
+                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground">{b.room_type} · {b.guests_count} guest(s) · {b.check_in} → {b.check_out}</p>
-                <p className="text-xs text-muted-foreground mt-1">📧 {b.guest_email} · 📞 {b.guest_phone}</p>
-                {b.special_requests && <p className="text-xs text-muted-foreground mt-1 italic">"{b.special_requests}"</p>}
+                <p className="text-xs text-muted-foreground">
+                  {b.room_type} · {b.guests_count} guest(s) · {b.check_in} → {b.check_out}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  📧 {b.guest_email} · 📞 {b.guest_phone}
+                </p>
+                {b.special_requests && (
+                  <p className="text-xs text-muted-foreground mt-1 italic">
+                    "{b.special_requests}"
+                  </p>
+                )}
               </div>
               <div className="flex gap-2 shrink-0">
-                {b.status === "pending" && (<><button onClick={() => updateStatus(b.id, "confirmed")} className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs"><Check className="h-3 w-3" /> Confirm</button><button onClick={() => updateStatus(b.id, "cancelled")} className="flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs"><X className="h-3 w-3" /> Cancel</button></>)}
-                {b.status === "confirmed" && <button onClick={() => updateStatus(b.id, "completed")} className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs"><Check className="h-3 w-3" /> Complete</button>}
+                {b.status === "pending" && (
+                  <>
+                    <button
+                      onClick={() => updateStatus(b.id, "confirmed")}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs"
+                    >
+                      <Check className="h-3 w-3" /> Confirm
+                    </button>
+                    <button
+                      onClick={() => updateStatus(b.id, "cancelled")}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs"
+                    >
+                      <X className="h-3 w-3" /> Cancel
+                    </button>
+                  </>
+                )}
+                {b.status === "confirmed" && (
+                  <button
+                    onClick={() => updateStatus(b.id, "completed")}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs"
+                  >
+                    <Check className="h-3 w-3" /> Complete
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -139,34 +260,69 @@ function ReviewsPanel({ house }: { house: string }) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("reviews").select("*").eq("guest_house", house).order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("guest_house", house)
+      .order("created_at", { ascending: false });
     setReviews(data || []);
     setLoading(false);
   }, [house]);
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const toggleApproval = async (id: string, current: boolean) => { await supabase.from("reviews").update({ is_approved: !current }).eq("id", id); fetchData(); };
-  const deleteReview = async (id: string) => { await supabase.from("reviews").delete().eq("id", id); fetchData(); };
+  const toggleApproval = async (id: string, current: boolean) => {
+    await supabase.from("reviews").update({ is_approved: !current }).eq("id", id);
+    fetchData();
+  };
+  const deleteReview = async (id: string) => {
+    await supabase.from("reviews").delete().eq("id", id);
+    fetchData();
+  };
 
   if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
   return (
     <div>
       <h2 className="font-heading text-2xl text-foreground mb-6">Manage Reviews</h2>
-      {reviews.length === 0 ? <p className="text-sm text-muted-foreground">No reviews yet.</p> : (
+      {reviews.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No reviews yet.</p>
+      ) : (
         <div className="space-y-4">
           {reviews.map((r) => (
             <div key={r.id} className="bg-card border border-border p-5">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold text-foreground">{r.reviewer_name}</h3>
-                  <div className="flex gap-0.5">{[1,2,3,4,5].map((i) => <Star key={i} className={`h-3 w-3 ${i <= r.rating ? "fill-gold text-gold" : "text-border"}`} />)}</div>
-                  <span className={`text-[10px] px-2 py-0.5 uppercase tracking-wider ${r.is_approved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{r.is_approved ? "Approved" : "Pending"}</span>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star
+                        key={i}
+                        className={`h-3 w-3 ${i <= r.rating ? "fill-gold text-gold" : "text-border"}`}
+                      />
+                    ))}
+                  </div>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 uppercase tracking-wider ${r.is_approved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
+                  >
+                    {r.is_approved ? "Approved" : "Pending"}
+                  </span>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mb-3">{r.comment}</p>
               <div className="flex gap-2">
-                <button onClick={() => toggleApproval(r.id, r.is_approved)} className={`text-xs px-3 py-1.5 ${r.is_approved ? "bg-yellow-600" : "bg-green-600"} text-white`}>{r.is_approved ? "Unapprove" : "Approve"}</button>
-                <button onClick={() => deleteReview(r.id)} className="text-xs px-3 py-1.5 bg-red-600 text-white flex items-center gap-1"><Trash2 className="h-3 w-3" /> Delete</button>
+                <button
+                  onClick={() => toggleApproval(r.id, r.is_approved)}
+                  className={`text-xs px-3 py-1.5 ${r.is_approved ? "bg-yellow-600" : "bg-green-600"} text-white`}
+                >
+                  {r.is_approved ? "Unapprove" : "Approve"}
+                </button>
+                <button
+                  onClick={() => deleteReview(r.id)}
+                  className="text-xs px-3 py-1.5 bg-red-600 text-white flex items-center gap-1"
+                >
+                  <Trash2 className="h-3 w-3" /> Delete
+                </button>
               </div>
             </div>
           ))}
@@ -186,11 +342,17 @@ function GalleryPanel({ house }: { house: string }) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("gallery_images").select("*").eq("guest_house", house).order("display_order");
+    const { data } = await supabase
+      .from("gallery_images")
+      .select("*")
+      .eq("guest_house", house)
+      .order("display_order");
     setImages(data || []);
     setLoading(false);
   }, [house]);
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -198,16 +360,32 @@ function GalleryPanel({ house }: { house: string }) {
     setUploading(true);
     const fileName = `${house}/${Date.now()}.${file.name.split(".").pop()}`;
     const { error } = await supabase.storage.from("gallery").upload(fileName, file);
-    if (error) { alert("Upload failed: " + error.message); setUploading(false); return; }
+    if (error) {
+      alert("Upload failed: " + error.message);
+      setUploading(false);
+      return;
+    }
     const { data: urlData } = supabase.storage.from("gallery").getPublicUrl(fileName);
-    await supabase.from("gallery_images").insert({ guest_house: house, image_url: urlData.publicUrl, alt_text: newAlt, category: newCategory, display_order: images.length });
-    setNewAlt(""); setNewCategory("General"); setUploading(false); fetchData();
+    await supabase
+      .from("gallery_images")
+      .insert({
+        guest_house: house,
+        image_url: urlData.publicUrl,
+        alt_text: newAlt,
+        category: newCategory,
+        display_order: images.length,
+      });
+    setNewAlt("");
+    setNewCategory("General");
+    setUploading(false);
+    fetchData();
   };
 
   const deleteImage = async (id: string, imageUrl: string) => {
     const pathMatch = imageUrl.match(/gallery\/(.+)$/);
     if (pathMatch) await supabase.storage.from("gallery").remove([pathMatch[1]]);
-    await supabase.from("gallery_images").delete().eq("id", id); fetchData();
+    await supabase.from("gallery_images").delete().eq("id", id);
+    fetchData();
   };
 
   if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
@@ -217,23 +395,59 @@ function GalleryPanel({ house }: { house: string }) {
       <div className="bg-cream border border-border p-6 mb-8">
         <h3 className="text-sm font-semibold text-foreground mb-4">Upload New Image</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input type="text" placeholder="Image description" value={newAlt} onChange={(e) => setNewAlt(e.target.value)} className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
-          <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)} className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark">
-            {["General", "Rooms", "Facilities", "Dining", "Exterior", "Interior"].map((c) => <option key={c} value={c}>{c}</option>)}
+          <input
+            type="text"
+            placeholder="Image description"
+            value={newAlt}
+            onChange={(e) => setNewAlt(e.target.value)}
+            className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
+          <select
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+            className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          >
+            {["General", "Rooms", "Facilities", "Dining", "Exterior", "Interior"].map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
-          <label className={`btn-gold flex items-center justify-center gap-2 cursor-pointer ${uploading || !newAlt ? "opacity-50 pointer-events-none" : ""}`}>
-            <Upload className="h-4 w-4" />{uploading ? "Uploading..." : "Choose & Upload"}
-            <input type="file" accept="image/*" onChange={handleUpload} className="hidden" disabled={uploading || !newAlt} />
+          <label
+            className={`btn-gold flex items-center justify-center gap-2 cursor-pointer ${uploading || !newAlt ? "opacity-50 pointer-events-none" : ""}`}
+          >
+            <Upload className="h-4 w-4" />
+            {uploading ? "Uploading..." : "Choose & Upload"}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleUpload}
+              className="hidden"
+              disabled={uploading || !newAlt}
+            />
           </label>
         </div>
       </div>
-      {images.length === 0 ? <p className="text-sm text-muted-foreground">No gallery images yet.</p> : (
+      {images.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No gallery images yet.</p>
+      ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {images.map((img) => (
-            <div key={img.id} className="relative group bg-card border border-border overflow-hidden">
+            <div
+              key={img.id}
+              className="relative group bg-card border border-border overflow-hidden"
+            >
               <img src={img.image_url} alt={img.alt_text} className="w-full h-40 object-cover" />
-              <div className="p-3"><p className="text-xs font-medium text-foreground truncate">{img.alt_text}</p><p className="text-[10px] text-muted-foreground">{img.category}</p></div>
-              <button onClick={() => deleteImage(img.id, img.image_url)} className="absolute top-2 right-2 bg-red-600 text-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="h-3 w-3" /></button>
+              <div className="p-3">
+                <p className="text-xs font-medium text-foreground truncate">{img.alt_text}</p>
+                <p className="text-[10px] text-muted-foreground">{img.category}</p>
+              </div>
+              <button
+                onClick={() => deleteImage(img.id, img.image_url)}
+                className="absolute top-2 right-2 bg-red-600 text-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
             </div>
           ))}
         </div>
@@ -251,17 +465,33 @@ function ContactsPanel({ house }: { house: string }) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("contact_settings").select("*").eq("guest_house", house).single();
+    const { data } = await supabase
+      .from("contact_settings")
+      .select("*")
+      .eq("guest_house", house)
+      .single();
     setContact(data);
     setLoading(false);
   }, [house]);
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSave = async () => {
     if (!contact) return;
     setSaving(true);
-    await supabase.from("contact_settings").update({ phone: contact.phone, email: contact.email, whatsapp: contact.whatsapp, address: contact.address }).eq("guest_house", house);
-    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000);
+    await supabase
+      .from("contact_settings")
+      .update({
+        phone: contact.phone,
+        email: contact.email,
+        whatsapp: contact.whatsapp,
+        address: contact.address,
+      })
+      .eq("guest_house", house);
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   };
 
   if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
@@ -270,14 +500,28 @@ function ContactsPanel({ house }: { house: string }) {
     <div>
       <h2 className="font-heading text-2xl text-foreground mb-6">Contact Details</h2>
       <div className="bg-card border border-border p-6 max-w-lg space-y-4">
-        {[{ label: "Phone Number", key: "phone" }, { label: "Email Address", key: "email" }, { label: "WhatsApp Number", key: "whatsapp" }, { label: "Physical Address", key: "address" }].map((field) => (
+        {[
+          { label: "Phone Number", key: "phone" },
+          { label: "Email Address", key: "email" },
+          { label: "WhatsApp Number", key: "whatsapp" },
+          { label: "Physical Address", key: "address" },
+        ].map((field) => (
           <div key={field.key}>
-            <label className="text-xs tracking-widest uppercase text-muted-foreground mb-1 block">{field.label}</label>
-            <input type="text" value={contact[field.key] || ""} onChange={(e) => setContact({ ...contact, [field.key]: e.target.value })} className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark" />
+            <label className="text-xs tracking-widest uppercase text-muted-foreground mb-1 block">
+              {field.label}
+            </label>
+            <input
+              type="text"
+              value={contact[field.key] || ""}
+              onChange={(e) => setContact({ ...contact, [field.key]: e.target.value })}
+              className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+            />
           </div>
         ))}
         <div className="flex items-center gap-3 pt-2">
-          <button onClick={handleSave} disabled={saving} className="btn-gold disabled:opacity-50">{saving ? "Saving..." : "Save Changes"}</button>
+          <button onClick={handleSave} disabled={saving} className="btn-gold disabled:opacity-50">
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
           {saved && <span className="text-sm text-green-600">✓ Saved</span>}
         </div>
       </div>
@@ -290,72 +534,162 @@ function PromotionsPanel({ house }: { house: string }) {
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", discount_percentage: 0, valid_from: "", valid_until: "", is_active: true });
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    discount_percentage: 0,
+    valid_from: "",
+    valid_until: "",
+    is_active: true,
+  });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("promotions").select("*").eq("guest_house", house).order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("promotions")
+      .select("*")
+      .eq("guest_house", house)
+      .order("created_at", { ascending: false });
     setPromos(data || []);
     setLoading(false);
   }, [house]);
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleAdd = async () => {
     if (!form.title) return;
     await supabase.from("promotions").insert({ ...form, guest_house: house });
-    setForm({ title: "", description: "", discount_percentage: 0, valid_from: "", valid_until: "", is_active: true });
-    setShowForm(false); fetchData();
+    setForm({
+      title: "",
+      description: "",
+      discount_percentage: 0,
+      valid_from: "",
+      valid_until: "",
+      is_active: true,
+    });
+    setShowForm(false);
+    fetchData();
   };
 
-  const toggleActive = async (id: string, current: boolean) => { await supabase.from("promotions").update({ is_active: !current }).eq("id", id); fetchData(); };
-  const deletePromo = async (id: string) => { await supabase.from("promotions").delete().eq("id", id); fetchData(); };
+  const toggleActive = async (id: string, current: boolean) => {
+    await supabase.from("promotions").update({ is_active: !current }).eq("id", id);
+    fetchData();
+  };
+  const deletePromo = async (id: string) => {
+    await supabase.from("promotions").delete().eq("id", id);
+    fetchData();
+  };
 
   if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-heading text-2xl text-foreground">Promotions</h2>
-        <button onClick={() => setShowForm(!showForm)} className="btn-gold flex items-center gap-2 text-xs"><Plus className="h-3 w-3" /> Add Promotion</button>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="btn-gold flex items-center gap-2 text-xs"
+        >
+          <Plus className="h-3 w-3" /> Add Promotion
+        </button>
       </div>
 
       {showForm && (
         <div className="bg-cream border border-border p-6 mb-6 space-y-4">
-          <input type="text" placeholder="Promotion title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
-          <input type="text" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
+          <input
+            type="text"
+            placeholder="Promotion title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
+          <input
+            type="text"
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Discount %</label>
-              <input type="number" value={form.discount_percentage} onChange={(e) => setForm({ ...form, discount_percentage: parseInt(e.target.value) || 0 })} className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
+              <input
+                type="number"
+                value={form.discount_percentage}
+                onChange={(e) =>
+                  setForm({ ...form, discount_percentage: parseInt(e.target.value) || 0 })
+                }
+                className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Valid From</label>
-              <input type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
+              <input
+                type="date"
+                value={form.valid_from}
+                onChange={(e) => setForm({ ...form, valid_from: e.target.value })}
+                className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Valid Until</label>
-              <input type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
+              <input
+                type="date"
+                value={form.valid_until}
+                onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+                className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+              />
             </div>
           </div>
-          <button onClick={handleAdd} className="btn-gold text-xs">Save Promotion</button>
+          <button onClick={handleAdd} className="btn-gold text-xs">
+            Save Promotion
+          </button>
         </div>
       )}
 
-      {promos.length === 0 ? <p className="text-sm text-muted-foreground">No promotions yet.</p> : (
+      {promos.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No promotions yet.</p>
+      ) : (
         <div className="space-y-4">
           {promos.map((p) => (
-            <div key={p.id} className="bg-card border border-border p-5 flex flex-col md:flex-row md:items-center gap-4">
+            <div
+              key={p.id}
+              className="bg-card border border-border p-5 flex flex-col md:flex-row md:items-center gap-4"
+            >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-sm font-semibold text-foreground">{p.title}</h3>
-                  {p.discount_percentage > 0 && <span className="text-[10px] px-2 py-0.5 bg-gold-dark text-warm-white font-bold">{p.discount_percentage}% OFF</span>}
-                  <span className={`text-[10px] px-2 py-0.5 uppercase tracking-wider ${p.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{p.is_active ? "Active" : "Inactive"}</span>
+                  {p.discount_percentage > 0 && (
+                    <span className="text-[10px] px-2 py-0.5 bg-gold-dark text-warm-white font-bold">
+                      {p.discount_percentage}% OFF
+                    </span>
+                  )}
+                  <span
+                    className={`text-[10px] px-2 py-0.5 uppercase tracking-wider ${p.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                  >
+                    {p.is_active ? "Active" : "Inactive"}
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground">{p.description}</p>
-                {p.valid_from && <p className="text-xs text-muted-foreground mt-1">{p.valid_from} → {p.valid_until}</p>}
+                {p.valid_from && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {p.valid_from} → {p.valid_until}
+                  </p>
+                )}
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => toggleActive(p.id, p.is_active)} className={`text-xs px-3 py-1.5 ${p.is_active ? "bg-yellow-600" : "bg-green-600"} text-white`}>{p.is_active ? "Deactivate" : "Activate"}</button>
-                <button onClick={() => deletePromo(p.id)} className="text-xs px-3 py-1.5 bg-red-600 text-white flex items-center gap-1"><Trash2 className="h-3 w-3" /> Delete</button>
+                <button
+                  onClick={() => toggleActive(p.id, p.is_active)}
+                  className={`text-xs px-3 py-1.5 ${p.is_active ? "bg-yellow-600" : "bg-green-600"} text-white`}
+                >
+                  {p.is_active ? "Deactivate" : "Activate"}
+                </button>
+                <button
+                  onClick={() => deletePromo(p.id)}
+                  className="text-xs px-3 py-1.5 bg-red-600 text-white flex items-center gap-1"
+                >
+                  <Trash2 className="h-3 w-3" /> Delete
+                </button>
               </div>
             </div>
           ))}
@@ -372,29 +706,57 @@ function MenusPanel({ house }: { house: string }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", price: "", category: "breakfast" });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: "", category: "breakfast" });
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "breakfast",
+  });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("menu_items").select("*").eq("guest_house", house).order("category").order("display_order");
+    const { data } = await supabase
+      .from("menu_items")
+      .select("*")
+      .eq("guest_house", house)
+      .order("category")
+      .order("display_order");
     setItems(data || []);
     setLoading(false);
   }, [house]);
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleAdd = async () => {
     if (!form.name || !form.price) return;
-    await supabase.from("menu_items").insert({ ...form, guest_house: house, display_order: items.length });
-    setForm({ name: "", description: "", price: "", category: "breakfast" }); setShowForm(false); fetchData();
+    await supabase
+      .from("menu_items")
+      .insert({ ...form, guest_house: house, display_order: items.length });
+    setForm({ name: "", description: "", price: "", category: "breakfast" });
+    setShowForm(false);
+    fetchData();
   };
 
-  const startEdit = (item: any) => { setEditingId(item.id); setEditForm({ name: item.name, description: item.description, price: item.price, category: item.category }); };
+  const startEdit = (item: any) => {
+    setEditingId(item.id);
+    setEditForm({
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+    });
+  };
   const saveEdit = async () => {
     if (!editingId) return;
     await supabase.from("menu_items").update(editForm).eq("id", editingId);
-    setEditingId(null); fetchData();
+    setEditingId(null);
+    fetchData();
   };
-  const deleteItem = async (id: string) => { await supabase.from("menu_items").delete().eq("id", id); fetchData(); };
+  const deleteItem = async (id: string) => {
+    await supabase.from("menu_items").delete().eq("id", id);
+    fetchData();
+  };
 
   const categories = ["breakfast", "lunch", "dinner"];
   if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
@@ -403,20 +765,53 @@ function MenusPanel({ house }: { house: string }) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-heading text-2xl text-foreground">Menu Items</h2>
-        <button onClick={() => setShowForm(!showForm)} className="btn-gold flex items-center gap-2 text-xs"><Plus className="h-3 w-3" /> Add Item</button>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="btn-gold flex items-center gap-2 text-xs"
+        >
+          <Plus className="h-3 w-3" /> Add Item
+        </button>
       </div>
 
       {showForm && (
         <div className="bg-cream border border-border p-6 mb-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="Item name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
-            <input type="text" placeholder="Price (e.g. M85)" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
+            <input
+              type="text"
+              placeholder="Item name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+            />
+            <input
+              type="text"
+              placeholder="Price (e.g. M85)"
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+            />
           </div>
-          <input type="text" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark" />
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark">
-            {categories.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+          <input
+            type="text"
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
+          <select
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          >
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c.charAt(0).toUpperCase() + c.slice(1)}
+              </option>
+            ))}
           </select>
-          <button onClick={handleAdd} className="btn-gold text-xs">Save Item</button>
+          <button onClick={handleAdd} className="btn-gold text-xs">
+            Save Item
+          </button>
         </div>
       )}
 
@@ -425,20 +820,44 @@ function MenusPanel({ house }: { house: string }) {
         if (catItems.length === 0) return null;
         return (
           <div key={cat} className="mb-8">
-            <h3 className="font-heading text-lg text-foreground capitalize border-b border-border pb-2 mb-4">{cat}</h3>
+            <h3 className="font-heading text-lg text-foreground capitalize border-b border-border pb-2 mb-4">
+              {cat}
+            </h3>
             <div className="space-y-3">
               {catItems.map((item) => (
                 <div key={item.id} className="bg-card border border-border p-4">
                   {editingId === item.id ? (
                     <div className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark" />
-                        <input value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} className="border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark" />
+                        <input
+                          value={editForm.name}
+                          onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                          className="border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                        />
+                        <input
+                          value={editForm.price}
+                          onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                          className="border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                        />
                       </div>
-                      <input value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark" />
+                      <input
+                        value={editForm.description}
+                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                        className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                      />
                       <div className="flex gap-2">
-                        <button onClick={saveEdit} className="text-xs px-3 py-1.5 bg-green-600 text-white flex items-center gap-1"><Save className="h-3 w-3" /> Save</button>
-                        <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1.5 bg-gray-500 text-white">Cancel</button>
+                        <button
+                          onClick={saveEdit}
+                          className="text-xs px-3 py-1.5 bg-green-600 text-white flex items-center gap-1"
+                        >
+                          <Save className="h-3 w-3" /> Save
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="text-xs px-3 py-1.5 bg-gray-500 text-white"
+                        >
+                          Cancel
+                        </button>
                       </div>
                     </div>
                   ) : (
@@ -449,8 +868,18 @@ function MenusPanel({ house }: { house: string }) {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-semibold text-gold-dark">{item.price}</span>
-                        <button onClick={() => startEdit(item)} className="text-muted-foreground hover:text-foreground"><Edit className="h-4 w-4" /></button>
-                        <button onClick={() => deleteItem(item.id)} className="text-muted-foreground hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                        <button
+                          onClick={() => startEdit(item)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteItem(item.id)}
+                          className="text-muted-foreground hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
                   )}
@@ -473,25 +902,42 @@ function PricesPanel({ house }: { house: string }) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("room_prices").select("*").eq("guest_house", house).order("display_order");
+    const { data } = await supabase
+      .from("room_prices")
+      .select("*")
+      .eq("guest_house", house)
+      .order("display_order");
     setPrices(data || []);
     setLoading(false);
   }, [house]);
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const startEdit = (item: any) => {
     setEditingId(item.id);
-    setEditForm({ price: item.price, description: item.description, features: (item.features || []).join(", ") });
+    setEditForm({
+      price: item.price,
+      description: item.description,
+      features: (item.features || []).join(", "),
+    });
   };
 
   const saveEdit = async () => {
     if (!editingId) return;
-    await supabase.from("room_prices").update({
-      price: editForm.price,
-      description: editForm.description,
-      features: editForm.features.split(",").map((f: string) => f.trim()).filter(Boolean),
-    }).eq("id", editingId);
-    setEditingId(null); fetchData();
+    await supabase
+      .from("room_prices")
+      .update({
+        price: editForm.price,
+        description: editForm.description,
+        features: editForm.features
+          .split(",")
+          .map((f: string) => f.trim())
+          .filter(Boolean),
+      })
+      .eq("id", editingId);
+    setEditingId(null);
+    fetchData();
   };
 
   if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
@@ -509,20 +955,45 @@ function PricesPanel({ house }: { house: string }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Price</label>
-                    <input value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark" />
+                    <input
+                      value={editForm.price}
+                      onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                      className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                    />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Features (comma-separated)</label>
-                    <input value={editForm.features} onChange={(e) => setEditForm({ ...editForm, features: e.target.value })} className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark" />
+                    <label className="text-xs text-muted-foreground mb-1 block">
+                      Features (comma-separated)
+                    </label>
+                    <input
+                      value={editForm.features}
+                      onChange={(e) => setEditForm({ ...editForm, features: e.target.value })}
+                      className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                    />
                   </div>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Description</label>
-                  <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={2} className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark" />
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={2}
+                    className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                  />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={saveEdit} className="text-xs px-3 py-1.5 bg-green-600 text-white flex items-center gap-1"><Save className="h-3 w-3" /> Save</button>
-                  <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1.5 bg-gray-500 text-white">Cancel</button>
+                  <button
+                    onClick={saveEdit}
+                    className="text-xs px-3 py-1.5 bg-green-600 text-white flex items-center gap-1"
+                  >
+                    <Save className="h-3 w-3" /> Save
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="text-xs px-3 py-1.5 bg-gray-500 text-white"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             ) : (
@@ -531,18 +1002,559 @@ function PricesPanel({ house }: { house: string }) {
                   <h3 className="text-sm font-semibold text-foreground">{p.room_type}</h3>
                   <p className="text-xs text-muted-foreground mt-1">{p.description}</p>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {(p.features || []).map((f: string) => <span key={f} className="text-[10px] px-2 py-0.5 bg-cream text-muted-foreground">{f}</span>)}
+                    {(p.features || []).map((f: string) => (
+                      <span
+                        key={f}
+                        className="text-[10px] px-2 py-0.5 bg-cream text-muted-foreground"
+                      >
+                        {f}
+                      </span>
+                    ))}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-lg font-heading text-gold-dark">{p.price}</span>
-                  <button onClick={() => startEdit(p)} className="text-muted-foreground hover:text-foreground"><Edit className="h-4 w-4" /></button>
+                  <button
+                    onClick={() => startEdit(p)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             )}
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* ==================== ROOM IMAGES ==================== */
+function RoomImagesPanel({ house }: { house: string }) {
+  const [roomTypes, setRoomTypes] = useState<string[]>([]);
+  const [images, setImages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [selectedRoomType, setSelectedRoomType] = useState("");
+  const [newAlt, setNewAlt] = useState("");
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    const { data: prices } = await supabase
+      .from("room_prices")
+      .select("room_type")
+      .eq("guest_house", house)
+      .order("display_order");
+    const types = [...new Set((prices || []).map((p) => p.room_type))];
+    setRoomTypes(types);
+    if (!selectedRoomType && types.length > 0) setSelectedRoomType(types[0]);
+    const { data } = await supabase
+      .from("room_images")
+      .select("*")
+      .eq("guest_house", house)
+      .order("display_order");
+    setImages(data || []);
+    setLoading(false);
+  }, [house]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedRoomType) return;
+    setUploading(true);
+    const fileName = `${house}/${Date.now()}.${file.name.split(".").pop()}`;
+    const { error } = await supabase.storage.from("room_images").upload(fileName, file);
+    if (error) {
+      alert("Upload failed: " + error.message);
+      setUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("room_images").getPublicUrl(fileName);
+    await supabase.from("room_images").insert({
+      guest_house: house,
+      room_type: selectedRoomType,
+      image_url: urlData.publicUrl,
+      alt_text: newAlt || `${selectedRoomType} image`,
+      display_order: images.length,
+    });
+    setNewAlt("");
+    setUploading(false);
+    fetchData();
+  };
+
+  const deleteImage = async (id: string, imageUrl: string) => {
+    const pathMatch = imageUrl.match(/room_images\/(.+)$/);
+    if (pathMatch) await supabase.storage.from("room_images").remove([pathMatch[1]]);
+    await supabase.from("room_images").delete().eq("id", id);
+    fetchData();
+  };
+
+  if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
+  return (
+    <div>
+      <h2 className="font-heading text-2xl text-foreground mb-6">Room Images</h2>
+      <p className="text-xs text-muted-foreground mb-6">
+        Upload additional images for each room type. These will appear in the room detail modal.
+      </p>
+      <div className="bg-cream border border-border p-6 mb-8">
+        <h3 className="text-sm font-semibold text-foreground mb-4">Upload New Room Image</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <select
+            value={selectedRoomType}
+            onChange={(e) => setSelectedRoomType(e.target.value)}
+            className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          >
+            {roomTypes.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            placeholder="Image description (optional)"
+            value={newAlt}
+            onChange={(e) => setNewAlt(e.target.value)}
+            className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
+          <label
+            className={`btn-gold flex items-center justify-center gap-2 cursor-pointer ${uploading ? "opacity-50 pointer-events-none" : ""}`}
+          >
+            <Upload className="h-4 w-4" />
+            {uploading ? "Uploading..." : "Choose & Upload"}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleUpload}
+              className="hidden"
+              disabled={uploading}
+            />
+          </label>
+        </div>
+      </div>
+      {images.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No room images yet.</p>
+      ) : (
+        <div className="space-y-6">
+          {roomTypes.map((type) => {
+            const typeImages = images.filter((img) => img.room_type === type);
+            if (typeImages.length === 0) return null;
+            return (
+              <div key={type}>
+                <h3 className="text-sm font-semibold text-foreground mb-3 capitalize">{type}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {typeImages.map((img) => (
+                    <div
+                      key={img.id}
+                      className="relative group bg-card border border-border overflow-hidden"
+                    >
+                      <img
+                        src={img.image_url}
+                        alt={img.alt_text}
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="p-2">
+                        <p className="text-[10px] text-muted-foreground truncate">{img.alt_text}</p>
+                      </div>
+                      <button
+                        onClick={() => deleteImage(img.id, img.image_url)}
+                        className="absolute top-2 right-2 bg-red-600 text-white p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ==================== DINING BANNERS ==================== */
+function DiningBannersPanel({ house }: { house: string }) {
+  const [banners, setBanners] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ title: "", description: "", banner_type: "setup" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", description: "", banner_type: "setup" });
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("dining_banners")
+      .select("*")
+      .eq("guest_house", house)
+      .order("display_order");
+    setBanners(data || []);
+    setLoading(false);
+  }, [house]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleAdd = async () => {
+    if (!form.title) return;
+    await supabase.from("dining_banners").insert({
+      guest_house: house,
+      image_url: "",
+      title: form.title,
+      description: form.description,
+      banner_type: form.banner_type,
+      display_order: banners.length,
+    });
+    setForm({ title: "", description: "", banner_type: "setup" });
+    setShowForm(false);
+    fetchData();
+  };
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>, bannerId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const fileName = `${house}/dining/${Date.now()}.${file.name.split(".").pop()}`;
+    const { error } = await supabase.storage.from("dining").upload(fileName, file);
+    if (error) {
+      alert("Upload failed: " + error.message);
+      setUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("dining").getPublicUrl(fileName);
+    await supabase
+      .from("dining_banners")
+      .update({ image_url: urlData.publicUrl })
+      .eq("id", bannerId);
+    setUploading(false);
+    fetchData();
+  };
+
+  const startEdit = (banner: any) => {
+    setEditingId(banner.id);
+    setEditForm({
+      title: banner.title,
+      description: banner.description,
+      banner_type: banner.banner_type,
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    await supabase.from("dining_banners").update(editForm).eq("id", editingId);
+    setEditingId(null);
+    fetchData();
+  };
+
+  const toggleActive = async (id: string, current: boolean) => {
+    await supabase.from("dining_banners").update({ is_active: !current }).eq("id", id);
+    fetchData();
+  };
+
+  const deleteBanner = async (id: string, imageUrl: string) => {
+    if (imageUrl) {
+      const pathMatch = imageUrl.match(/dining\/(.+)$/);
+      if (pathMatch) await supabase.storage.from("dining").remove([pathMatch[1]]);
+    }
+    await supabase.from("dining_banners").delete().eq("id", id);
+    fetchData();
+  };
+
+  if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-heading text-2xl text-foreground">Dining Banners</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="btn-gold flex items-center gap-2 text-xs"
+        >
+          <Plus className="h-3 w-3" /> Add Banner
+        </button>
+      </div>
+      {showForm && (
+        <div className="bg-cream border border-border p-6 mb-6 space-y-4">
+          <input
+            type="text"
+            placeholder="Banner title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
+          <input
+            type="text"
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
+          <select
+            value={form.banner_type}
+            onChange={(e) => setForm({ ...form, banner_type: e.target.value })}
+            className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          >
+            <option value="setup">Dining Setup</option>
+            <option value="food">Food Plate</option>
+          </select>
+          <button onClick={handleAdd} className="btn-gold text-xs">
+            Create Banner
+          </button>
+        </div>
+      )}
+      {banners.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No banners yet.</p>
+      ) : (
+        <div className="space-y-6">
+          {banners.map((banner) => (
+            <div key={banner.id} className="bg-card border border-border p-5">
+              {editingId === banner.id ? (
+                <div className="space-y-3">
+                  <input
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                  />
+                  <input
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                  />
+                  <select
+                    value={editForm.banner_type}
+                    onChange={(e) => setEditForm({ ...editForm, banner_type: e.target.value })}
+                    className="border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
+                  >
+                    <option value="setup">Dining Setup</option>
+                    <option value="food">Food Plate</option>
+                  </select>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={saveEdit}
+                      className="text-xs px-3 py-1.5 bg-green-600 text-white flex items-center gap-1"
+                    >
+                      <Save className="h-3 w-3" /> Save
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="text-xs px-3 py-1.5 bg-gray-500 text-white"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-foreground">{banner.title}</h3>
+                        <span className="text-[10px] px-2 py-0.5 bg-cream text-muted-foreground uppercase">
+                          {banner.banner_type}
+                        </span>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 uppercase ${banner.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                        >
+                          {banner.is_active ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                      {banner.description && (
+                        <p className="text-xs text-muted-foreground mt-1">{banner.description}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => startEdit(banner)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => toggleActive(banner.id, banner.is_active)}
+                        className={`text-xs px-2 py-1 ${banner.is_active ? "bg-yellow-600" : "bg-green-600"} text-white`}
+                      >
+                        {banner.is_active ? "Deact." : "Act."}
+                      </button>
+                      <button
+                        onClick={() => deleteBanner(banner.id, banner.image_url)}
+                        className="text-muted-foreground hover:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  {banner.image_url ? (
+                    <div className="relative group">
+                      <img
+                        src={banner.image_url}
+                        alt={banner.title}
+                        className="w-full h-40 object-cover"
+                      />
+                      <label className="absolute top-2 left-2 bg-charcoal/70 text-warm-white text-[10px] px-2 py-1 cursor-pointer hover:bg-charcoal transition-colors">
+                        Change Image
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleUploadImage(e, banner.id)}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  ) : (
+                    <label className="block border-2 border-dashed border-border p-8 text-center cursor-pointer hover:border-gold-dark transition-colors">
+                      <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">Upload banner image</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleUploadImage(e, banner.id)}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ==================== MENU IMAGES ==================== */
+function MenuImagesPanel({ house }: { house: string }) {
+  const [menuImages, setMenuImages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [newTitle, setNewTitle] = useState("Menu");
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("menu_images")
+      .select("*")
+      .eq("guest_house", house)
+      .order("created_at", { ascending: false });
+    setMenuImages(data || []);
+    setLoading(false);
+  }, [house]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const fileName = `${house}/menu/${Date.now()}.${file.name.split(".").pop()}`;
+    const { error } = await supabase.storage.from("menus").upload(fileName, file);
+    if (error) {
+      alert("Upload failed: " + error.message);
+      setUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("menus").getPublicUrl(fileName);
+    await supabase.from("menu_images").insert({
+      guest_house: house,
+      image_url: urlData.publicUrl,
+      title: newTitle || "Menu",
+    });
+    setNewTitle("Menu");
+    setUploading(false);
+    fetchData();
+  };
+
+  const toggleActive = async (id: string, current: boolean) => {
+    await supabase.from("menu_images").update({ is_active: !current }).eq("id", id);
+    fetchData();
+  };
+
+  const deleteImage = async (id: string, imageUrl: string) => {
+    const pathMatch = imageUrl.match(/menus\/(.+)$/);
+    if (pathMatch) await supabase.storage.from("menus").remove([pathMatch[1]]);
+    await supabase.from("menu_images").delete().eq("id", id);
+    fetchData();
+  };
+
+  if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
+  return (
+    <div>
+      <h2 className="font-heading text-2xl text-foreground mb-6">Menu Images</h2>
+      <p className="text-xs text-muted-foreground mb-6">
+        Upload a menu image that guests can view and download from the dining page.
+      </p>
+      <div className="bg-cream border border-border p-6 mb-8">
+        <h3 className="text-sm font-semibold text-foreground mb-4">Upload Menu Image</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            placeholder="Menu title"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
+          <label
+            className={`btn-gold flex items-center justify-center gap-2 cursor-pointer ${uploading ? "opacity-50 pointer-events-none" : ""}`}
+          >
+            <Upload className="h-4 w-4" />
+            {uploading ? "Uploading..." : "Choose & Upload"}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleUpload}
+              className="hidden"
+              disabled={uploading}
+            />
+          </label>
+        </div>
+      </div>
+      {menuImages.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No menu images uploaded yet.</p>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {menuImages.map((img) => (
+            <div
+              key={img.id}
+              className="relative group bg-card border border-border overflow-hidden"
+            >
+              <img
+                src={img.image_url}
+                alt={img.title}
+                className="w-full h-48 object-contain bg-charcoal/5"
+              />
+              <div className="p-3">
+                <p className="text-xs font-medium text-foreground truncate">{img.title}</p>
+                <span
+                  className={`text-[10px] px-2 py-0.5 uppercase ${img.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                >
+                  {img.is_active ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => toggleActive(img.id, img.is_active)}
+                  className={`p-1.5 ${img.is_active ? "bg-yellow-600" : "bg-green-600"} text-white`}
+                >
+                  {img.is_active ? "Deact." : "Act."}
+                </button>
+                <button
+                  onClick={() => deleteImage(img.id, img.image_url)}
+                  className="bg-red-600 text-white p-1.5"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

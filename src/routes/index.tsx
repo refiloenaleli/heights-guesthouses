@@ -1,137 +1,262 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { MapPin, Star, Users, Coffee, Shield, Wifi, Car, UtensilsCrossed, Tag } from "lucide-react";
-import { useGuestHouse } from "@/lib/guest-house-context";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { RoomCard } from "@/components/RoomCard";
+import {
+  MapPin,
+  Star,
+  ArrowRight,
+  Building2,
+  BedDouble,
+  UtensilsCrossed,
+  Wifi,
+  Shield,
+  Car,
+} from "lucide-react";
+import { useGuestHouse, type GuestHouse } from "@/lib/guest-house-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
-import ghSingleRoom from "@/assets/gh-single-room.jpg";
-import ghCoupleRoom from "@/assets/gh-couple-room.jpg";
-import ghSharingRoom from "@/assets/gh-sharing-room.jpg";
-import ghDining from "@/assets/gh-dining.jpg";
-import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
-import nhSingleRoom from "@/assets/nh-single-room.jpg";
-import nhCoupleRoom from "@/assets/nh-couple-room.jpg";
-import nhSharingRoom from "@/assets/nh-sharing-room.jpg";
-import nhDining1 from "@/assets/nh-dining1.jpg";
-import nhDining2 from "@/assets/nh-dining2.jpg";
+import ghLogo from "@/assets/gh-logo.jpg";
+import nhLogo from "@/assets/nh-logo.jpg";
 
 export const Route = createFileRoute("/")({
-  component: HomePage,
+  component: PropertySelectPage,
 });
 
-const roomImages: Record<string, Record<string, string>> = {
-  "greater-heights": {
-    "Single Room": ghSingleRoom,
-    "Couple Room": ghCoupleRoom,
-    "Sharing Room": ghSharingRoom,
-    "Conference & Banqueting": ghDining,
+const properties: {
+  id: GuestHouse;
+  name: string;
+  tagline: string;
+  description: string;
+  image: string;
+  logo: string;
+  features: { icon: typeof BedDouble; label: string }[];
+}[] = [
+  {
+    id: "greater-heights",
+    name: "Greater Heights Guest House",
+    tagline: "Intimate. Warm. Effortlessly comfortable.",
+    description:
+      "A welcoming Maseru retreat for restful stays, corporate travellers and smaller gatherings.",
+    image: ghExterior,
+    logo: ghLogo,
+    features: [
+      { icon: BedDouble, label: "10 Air-Conditioned Rooms" },
+      { icon: UtensilsCrossed, label: "In-House Chef" },
+      { icon: Wifi, label: "Reliable Wi-Fi" },
+      { icon: Shield, label: "24/7 Security" },
+    ],
   },
-  "new-heights": {
-    "Single Room": nhSingleRoom,
-    "Couple Room": nhCoupleRoom,
-    "Sharing Room": nhSharingRoom,
-    "Conference & Banqueting": nhDining1,
+  {
+    id: "new-heights",
+    name: "New Heights Guest House",
+    tagline: "More room. More possibilities.",
+    description:
+      "Designed for larger groups, conferences, events and stays that need a little more space.",
+    image: nhExterior1,
+    logo: nhLogo,
+    features: [
+      { icon: BedDouble, label: "Comfort Rooms" },
+      { icon: UtensilsCrossed, label: "Restaurant" },
+      { icon: Wifi, label: "Free WiFi" },
+      { icon: Car, label: "Free Parking" },
+    ],
   },
-};
-
-const features = [
-  { icon: MapPin, title: "Prime Location", desc: "Centrally located for easy access to all major attractions" },
-  { icon: Shield, title: "Secure & Safe", desc: "24/7 security and CCTV monitoring for your peace of mind" },
-  { icon: Users, title: "Friendly Staff", desc: "Our welcoming team ensures a seamless, personalised experience" },
-  { icon: Star, title: "Best Value", desc: "Enjoy unbeatable prices with fantastic offers tailored for you" },
 ];
 
-const amenities = [
-  { icon: Wifi, title: "High Speed WiFi" },
-  { icon: Car, title: "Free Parking" },
-  { icon: UtensilsCrossed, title: "Restaurant" },
-  { icon: Coffee, title: "Room Service" },
-  { icon: Shield, title: "24/7 Security" },
-  { icon: Users, title: "Conference Rooms" },
-];
-
-function HomePage() {
-  const { activeHouse, houseName } = useGuestHouse();
-  const heroImage = activeHouse === "greater-heights" ? ghExterior : nhExterior1;
-  const welcomeImages = activeHouse === "greater-heights"
-    ? [ghCoupleRoom, ghSingleRoom]
-    : [nhCoupleRoom, nhSingleRoom];
-  const diningImage = activeHouse === "greater-heights" ? ghOutdoorDining : nhDining2;
-
-  const [rooms, setRooms] = useState<any[]>([]);
-  const [promotions, setPromotions] = useState<any[]>([]);
-
-  useEffect(() => {
-    supabase.from("room_prices").select("*").eq("guest_house", activeHouse).order("display_order").then(({ data }) => {
-      setRooms(data || []);
-    });
-    supabase.from("promotions").select("*").eq("guest_house", activeHouse).eq("is_active", true).then(({ data }) => {
-      setPromotions(data || []);
-    });
-  }, [activeHouse]);
+function PropertySelectPage() {
+  const { setActiveHouse } = useGuestHouse();
 
   return (
     <>
       {/* Hero */}
-      <section className="relative h-[85vh] min-h-[600px] -mt-[88px]">
-        <img src={heroImage} alt={houseName} className="absolute inset-0 h-full w-full object-cover" width={1920} height={1080} />
+      <section className="relative h-[70vh] min-h-[500px] -mt-[88px]">
+        <img
+          src={ghExterior}
+          alt="Heights Guest Houses"
+          className="absolute inset-0 h-full w-full object-cover"
+          width={1920}
+          height={1080}
+        />
         <div className="hero-overlay absolute inset-0" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <div className="mb-4 flex justify-center gap-1">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="section-label text-gold-light">TWO HOMES. ONE TRUSTED HOST.</span>
+            <div className="mb-4 mt-4 flex justify-center gap-1">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-gold text-gold" />
+                <Star key={i} className="h-5 w-5 fill-gold text-gold" />
               ))}
             </div>
             <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl text-warm-white font-normal tracking-wide mb-4">
-              {houseName.toUpperCase()}
+              Heights Guest Houses
             </h1>
-            <p className="max-w-xl mx-auto text-warm-white/80 text-sm md:text-base mb-8 leading-relaxed">
-              Experience luxury accommodation in the heart of Lesotho. Modern rooms, exceptional service, and unforgettable hospitality.
+            <p className="max-w-2xl mx-auto text-warm-white/80 text-sm md:text-base mb-8 leading-relaxed">
+              Two welcoming homes. One trusted host in Maseru. Choose between Greater Heights and
+              New Heights for your perfect stay.
             </p>
-            <div className="flex gap-3 justify-center">
-              <Link to="/accommodation" className="btn-gold">Explore</Link>
-              <Link to="/booking" className="btn-gold-outline text-warm-white border-warm-white/50 hover:bg-warm-white hover:text-charcoal">
-                Book Now
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                to="/home"
+                onClick={() => setActiveHouse("greater-heights")}
+                className="btn-gold"
+              >
+                Book Greater Heights
+              </Link>
+              <Link
+                to="/home"
+                onClick={() => setActiveHouse("new-heights")}
+                className="btn-gold-outline text-warm-white border-warm-white/50 hover:bg-warm-white hover:text-charcoal"
+              >
+                Book New Heights
               </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Promotions Banner */}
-      {promotions.length > 0 && (
-        <section className="py-8 bg-gold-dark">
-          <div className="mx-auto max-w-6xl px-4">
-            <div className="flex items-center gap-3 justify-center flex-wrap">
-              <Tag className="h-5 w-5 text-warm-white" />
-              {promotions.map((promo) => (
-                <div key={promo.id} className="text-center">
-                  <span className="text-warm-white font-heading text-lg">{promo.title}</span>
-                  {promo.discount_percentage > 0 && (
-                    <span className="ml-2 bg-warm-white text-gold-dark px-2 py-0.5 text-xs font-bold">
-                      {promo.discount_percentage}% OFF
-                    </span>
-                  )}
-                  {promo.description && (
-                    <p className="text-warm-white/80 text-xs mt-1">{promo.description}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Intro Section */}
+      <section className="py-20 bg-cream">
+        <div className="mx-auto max-w-4xl px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <span className="section-label">Welcome to the Heights</span>
+            <h2 className="section-title mt-2 mb-6">One Trusted Group. Two Distinct Properties.</h2>
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+              Greater Heights and New Heights operate together as one group, under shared ownership
+              and management. Two distinct properties, each with its own character and capacity,
+              giving you a choice suited to the size and nature of your stay or event — from an
+              intimate weekend to a large conference, all from within the same trusted group.
+            </p>
+            <p className="font-accent mt-8 text-xl text-gold-dark">
+              Stay somewhere that feels considered.
+            </p>
+          </motion.div>
+        </div>
+      </section>
 
-      {/* Features */}
-      <section className="py-20 bg-card">
+      {/* Property Picker */}
+      <section className="py-20 bg-background">
         <div className="mx-auto max-w-6xl px-4">
+          <div className="text-center mb-14">
+            <span className="section-label">Select Your Property</span>
+            <h2 className="section-title mt-2">Choose Your Stay</h2>
+            <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              Each of our guest houses offers a unique experience. Select the one that best suits
+              your needs and begin your journey with us.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {properties.map((property, i) => (
+              <motion.div
+                key={property.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.15 }}
+                viewport={{ once: true }}
+                className="group relative overflow-hidden rounded-lg border border-border bg-card shadow-sm hover:shadow-xl transition-all duration-300"
+              >
+                {/* Property Image */}
+                <div className="relative h-72 overflow-hidden">
+                  <img
+                    src={property.image}
+                    alt={property.name}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    width={800}
+                    height={600}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/20 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                    <div>
+                      <span className="font-accent text-lg text-gold-light">
+                        {property.tagline}
+                      </span>
+                      <h3 className="font-heading text-2xl text-warm-white mt-1">
+                        {property.name}
+                      </h3>
+                    </div>
+                    <img
+                      src={property.logo}
+                      alt={`${property.name} logo`}
+                      className="h-14 w-14 rounded-full border-2 border-gold/50 object-cover bg-warm-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Property Details */}
+                <div className="p-6">
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                    {property.description}
+                  </p>
+
+                  {/* Features */}
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    {property.features.map((f) => (
+                      <div key={f.label} className="flex items-center gap-2">
+                        <f.icon className="h-4 w-4 text-gold-dark flex-shrink-0" />
+                        <span className="text-xs font-medium text-foreground">{f.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Location */}
+                  <div className="flex items-center gap-2 mb-6 text-xs text-muted-foreground">
+                    <MapPin className="h-4 w-4 text-gold-dark" />
+                    Maseru, Lesotho
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    <Link
+                      to="/home"
+                      onClick={() => setActiveHouse(property.id)}
+                      className="btn-gold flex-1 text-center inline-flex items-center justify-center gap-2"
+                    >
+                      Explore {property.id === "greater-heights" ? "Greater" : "New"} Heights
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                    <Link
+                      to="/booking"
+                      onClick={() => setActiveHouse(property.id)}
+                      className="btn-gold-outline flex-1 text-center"
+                    >
+                      Book Now
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="py-20 bg-cream">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="text-center mb-12">
+            <span className="section-label">The Heights Experience</span>
+            <h2 className="section-title mt-2">Why Choose Us</h2>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {features.map((f, i) => (
-              <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }} className="text-center">
+            {[
+              { icon: MapPin, title: "Prime Location", desc: "Centrally located in Maseru" },
+              { icon: Shield, title: "Secure & Safe", desc: "24/7 security & CCTV" },
+              { icon: Star, title: "Best Value", desc: "Unbeatable prices & offers" },
+              { icon: Building2, title: "Two Properties", desc: "Choose your perfect stay" },
+            ].map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="text-center"
+              >
                 <f.icon className="mx-auto h-8 w-8 text-gold-dark mb-3" />
                 <h3 className="font-heading text-base text-foreground mb-1">{f.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
@@ -141,94 +266,30 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Welcome Section */}
-      <section className="py-20 bg-cream">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="grid grid-cols-2 gap-3">
-              <img src={welcomeImages[0]} alt="Room" loading="lazy" className="w-full h-48 object-cover" />
-              <img src={welcomeImages[1]} alt="Suite" loading="lazy" className="w-full h-48 object-cover mt-6" />
-            </motion.div>
-            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <span className="section-label">Welcome to {houseName}</span>
-              <h2 className="section-title mt-2 mb-4">Luxury guest house in the heart of Lesotho</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                {houseName}, located in the heart of Maseru, offers modern, luxurious rooms
-                designed for comfort and relaxation. Our friendly staff ensures a seamless,
-                personalised experience with stunning views. Discover true luxury and
-                hospitality with us.
-              </p>
-              <Link to="/accommodation" className="btn-gold-outline inline-block">Read More →</Link>
-            </motion.div>
+      {/* CTA */}
+      <section className="py-20 bg-charcoal">
+        <div className="mx-auto max-w-4xl px-4 text-center">
+          <h2 className="font-heading text-3xl md:text-4xl text-warm-white mb-4">
+            Ready to Experience the Heights?
+          </h2>
+          <p className="text-warm-white/70 text-sm md:text-base mb-8 max-w-xl mx-auto leading-relaxed">
+            Book your stay today and discover why we're the preferred choice for travellers in
+            Lesotho.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link to="/home" onClick={() => setActiveHouse("greater-heights")} className="btn-gold">
+              Book Greater Heights
+            </Link>
+            <Link
+              to="/home"
+              onClick={() => setActiveHouse("new-heights")}
+              className="btn-gold-outline text-warm-white border-warm-white/50 hover:bg-warm-white hover:text-charcoal"
+            >
+              Book New Heights
+            </Link>
           </div>
         </div>
       </section>
-
-      {/* Rooms Preview */}
-      <section className="py-20 bg-background">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="text-center mb-12">
-            <span className="section-label">Exquisite & Luxurious</span>
-            <h2 className="section-title mt-2">Room & Suite Collection</h2>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {rooms.map((room, i) => (
-              <RoomCard
-                key={room.id}
-                title={room.room_type}
-                price={room.price}
-                priceNote={room.price_note}
-                description={room.description}
-                image={roomImages[activeHouse]?.[room.room_type] || ghSingleRoom}
-                features={room.features || []}
-                index={i}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Amenities */}
-      <section className="py-20 bg-cream">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="text-center mb-12">
-            <span className="section-label">Modern & Comfortable</span>
-            <h2 className="section-title mt-2">Facilities & Amenities</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-            {amenities.map((a) => (
-              <div key={a.title} className="flex items-center gap-3">
-                <a.icon className="h-6 w-6 text-gold-dark flex-shrink-0" />
-                <span className="text-sm font-medium text-foreground">{a.title}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Dining CTA */}
-      <section className="relative h-[50vh] min-h-[400px]">
-        <img src={diningImage} alt="Dining" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="hero-overlay absolute inset-0" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-          <span className="section-label text-gold-light mb-2">Fine Dining</span>
-          <h2 className="font-heading text-3xl md:text-5xl text-warm-white mb-4">Explore Our Dining Experience</h2>
-          <Link to="/dining" className="btn-gold">View Menu</Link>
-        </div>
-      </section>
-
-      {/* WhatsApp Float */}
-      <a
-        href="https://wa.me/26600000000?text=Hello%2C%20I%20would%20like%20to%20make%20a%20booking"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-lg hover:scale-110 transition-transform"
-        aria-label="Chat on WhatsApp"
-      >
-        <svg viewBox="0 0 24 24" className="h-7 w-7 fill-white">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-      </a>
     </>
   );
 }

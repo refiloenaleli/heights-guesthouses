@@ -366,15 +366,13 @@ function GalleryPanel({ house }: { house: string }) {
       return;
     }
     const { data: urlData } = supabase.storage.from("gallery").getPublicUrl(fileName);
-    await supabase
-      .from("gallery_images")
-      .insert({
-        guest_house: house,
-        image_url: urlData.publicUrl,
-        alt_text: newAlt,
-        category: newCategory,
-        display_order: images.length,
-      });
+    await supabase.from("gallery_images").insert({
+      guest_house: house,
+      image_url: urlData.publicUrl,
+      alt_text: newAlt,
+      category: newCategory,
+      display_order: images.length,
+    });
     setNewAlt("");
     setNewCategory("General");
     setUploading(false);
@@ -1434,6 +1432,7 @@ function MenuImagesPanel({ house }: { house: string }) {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [newTitle, setNewTitle] = useState("Menu");
+  const [newCaption, setNewCaption] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -1465,8 +1464,10 @@ function MenuImagesPanel({ house }: { house: string }) {
       guest_house: house,
       image_url: urlData.publicUrl,
       title: newTitle || "Menu",
+      caption: newCaption || null,
     });
     setNewTitle("Menu");
+    setNewCaption("");
     setUploading(false);
     fetchData();
   };
@@ -1488,16 +1489,24 @@ function MenuImagesPanel({ house }: { house: string }) {
     <div>
       <h2 className="font-heading text-2xl text-foreground mb-6">Menu Images</h2>
       <p className="text-xs text-muted-foreground mb-6">
-        Upload a menu image that guests can view and download from the dining page.
+        Upload at least three menu images with captions. Guests can view and download them from the
+        dining page.
       </p>
       <div className="bg-cream border border-border p-6 mb-8">
         <h3 className="text-sm font-semibold text-foreground mb-4">Upload Menu Image</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input
             type="text"
             placeholder="Menu title"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
+            className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
+          />
+          <input
+            type="text"
+            placeholder="Caption (optional)"
+            value={newCaption}
+            onChange={(e) => setNewCaption(e.target.value)}
             className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
           />
           <label

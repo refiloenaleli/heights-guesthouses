@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/nh-logo.jpg";
+import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
 
 export function Footer() {
   const { houseName, email, whatsappNumber, phoneNumber, address, activeHouse } = useGuestHouse();
@@ -13,7 +13,11 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <img src={logo} alt={houseName} className="mb-4 h-12 w-12 object-contain" />
+            <img
+              src={logo}
+              alt={houseName}
+              className="mb-4 h-20 w-20 rounded-full border-2 border-gold/60 object-contain bg-warm-white"
+            />
             <p className="text-sm font-heading text-warm-white mb-2">{houseName}</p>
             <p className="text-xs leading-relaxed text-warm-white/60">
               Experience luxury accommodation in the heart of Lesotho. Your comfort is our priority.

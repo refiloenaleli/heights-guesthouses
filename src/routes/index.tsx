@@ -15,7 +15,7 @@ import { useGuestHouse, type GuestHouse } from "@/lib/guest-house-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
 import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/nh-logo.jpg";
+import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
 
 export const Route = createFileRoute("/")({
   component: PropertySelectPage,
@@ -180,11 +180,6 @@ function PropertySelectPage() {
                         {property.name}
                       </h3>
                     </div>
-                    <img
-                      src={property.logo}
-                      alt={`${property.name} logo`}
-                      className="h-14 w-14 rounded-full border-2 border-gold/50 object-cover bg-warm-white"
-                    />
                   </div>
                 </div>
 

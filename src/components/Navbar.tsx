@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Menu, X, ArrowLeft, Phone } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/nh-logo.jpg";
+import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
 
 const navLinks = [
   { to: "/home" as const, label: "Home" },
@@ -24,10 +24,16 @@ export function Navbar() {
   const isHome = location.pathname === "/";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-charcoal/95 backdrop-blur-sm">
+    <header className="absolute top-0 left-0 right-0 z-50 bg-transparent">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <Link to="/home" className="flex items-center gap-2">
-          <img src={logo} alt={houseName} className="h-10 w-10 object-contain" />
+          {!isHome && (
+            <img
+              src={logo}
+              alt={houseName}
+              className="h-16 w-16 rounded-full border-2 border-gold/60 object-contain bg-warm-white"
+            />
+          )}
           <div className="hidden sm:block">
             <span className="block text-sm font-heading text-warm-white leading-tight">
               {houseName}
@@ -59,10 +65,11 @@ export function Navbar() {
           )}
           <a
             href={`tel:${phoneNumber.replace(/[^0-9+]/g, "")}`}
-            className="hidden md:flex items-center gap-1 text-xs text-gold-light/70 hover:text-gold-light"
+            title={`Call ${phoneNumber}`}
+            aria-label={`Call ${phoneNumber}`}
+            className="hidden md:flex items-center text-gold-light/80 hover:text-gold-light"
           >
-            <Phone className="h-3 w-3" />
-            <span className="hidden lg:inline">{phoneNumber}</span>
+            <Phone className="h-5 w-5" />
           </a>
           <Link to="/booking" className="hidden sm:block btn-gold text-xs px-4 py-2">
             Reservation

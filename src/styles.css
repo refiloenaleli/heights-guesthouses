@@ -105,6 +105,37 @@
   --sidebar-ring: oklch(0.55 0.12 65);
 }
 
+[data-house-theme="landing"] {
+  --background: oklch(0.975 0.008 82);
+  --foreground: oklch(0.2 0.015 50);
+  --card: oklch(0.995 0.002 82);
+  --border: oklch(0.87 0.012 78);
+  --gold: oklch(0.64 0.08 68);
+  --gold-light: oklch(0.78 0.06 74);
+  --gold-dark: oklch(0.5 0.08 62);
+  --cream: oklch(0.955 0.008 82);
+  --cream-dark: oklch(0.91 0.012 78);
+  --charcoal: oklch(0.18 0.012 50);
+  --charcoal-light: oklch(0.28 0.012 50);
+}
+
+[data-house-theme="new-heights"] {
+  --background: oklch(0.985 0.004 250);
+  --foreground: oklch(0.2 0.025 250);
+  --card: oklch(0.998 0.002 250);
+  --border: oklch(0.88 0.012 250);
+  --input: oklch(0.88 0.012 250);
+  --ring: oklch(0.42 0.08 250);
+  --gold: oklch(0.57 0.08 245);
+  --gold-light: oklch(0.78 0.05 245);
+  --gold-dark: oklch(0.4 0.08 250);
+  --cream: oklch(0.965 0.006 250);
+  --cream-dark: oklch(0.92 0.01 250);
+  --charcoal: oklch(0.19 0.035 250);
+  --charcoal-light: oklch(0.29 0.035 250);
+  --warm-white: oklch(0.99 0.002 250);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

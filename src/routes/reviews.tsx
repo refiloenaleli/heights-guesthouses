@@ -74,7 +74,7 @@ function ReviewsPage() {
 
   return (
     <>
-      <section className="bg-charcoal py-20 text-center">
+      <section className="bg-charcoal px-4 pb-20 pt-36 text-center">
         <span className="section-label text-gold-light">WORDS FROM OUR GUESTS</span>
         <h1 className="section-title text-warm-white mt-2">The stay speaks for itself.</h1>
         <p className="mt-3 max-w-xl mx-auto text-sm text-warm-white/60">

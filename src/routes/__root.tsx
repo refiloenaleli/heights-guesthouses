@@ -1,5 +1,12 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import { GuestHouseProvider } from "@/lib/guest-house-context";
+import {
+  Outlet,
+  Link,
+  createRootRoute,
+  HeadContent,
+  Scripts,
+  useLocation,
+} from "@tanstack/react-router";
+import { GuestHouseProvider, useGuestHouse } from "@/lib/guest-house-context";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
@@ -71,11 +78,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <GuestHouseProvider>
+      <ThemedApp />
+    </GuestHouseProvider>
+  );
+}
+
+function ThemedApp() {
+  const { activeHouse } = useGuestHouse();
+  const location = useLocation();
+  const theme = location.pathname === "/" ? "landing" : activeHouse;
+
+  return (
+    <div data-house-theme={theme}>
       <Navbar />
-      <main className="pt-[88px]">
+      <main>
         <Outlet />
       </main>
       <Footer />
-    </GuestHouseProvider>
+    </div>
   );
 }

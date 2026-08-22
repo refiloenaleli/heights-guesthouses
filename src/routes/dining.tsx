@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
+import diningInterior from "@/assets/dining.jpg";
 import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
+import ghDining from "@/assets/gh-dining.jpg";
 import nhDining2 from "@/assets/nh-dining2.jpg";
+import nhDining1 from "@/assets/nh-dining1.jpg";
 
 export const Route = createFileRoute("/dining")({
   component: DiningPage,
@@ -16,8 +19,8 @@ function DiningPage() {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [banners, setBanners] = useState<any[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const [menuImage, setMenuImage] = useState<any>(null);
-  const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [menuImages, setMenuImages] = useState<any[]>([]);
+  const [selectedMenu, setSelectedMenu] = useState<any>(null);
   const heroImage = activeHouse === "greater-heights" ? ghOutdoorDining : nhDining2;
 
   useEffect(() => {
@@ -43,18 +46,13 @@ function DiningPage() {
         setBanners(data || []);
       });
 
-    // Fetch menu image
     supabase
       .from("menu_images")
       .select("*")
       .eq("guest_house", activeHouse)
       .eq("is_active", true)
-      .limit(1)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setMenuImage(data[0]);
-        }
-      });
+      .order("created_at", { ascending: false })
+      .then(({ data }) => setMenuImages(data || []));
   }, [activeHouse]);
 
   // Auto-rotate banners
@@ -76,11 +74,14 @@ function DiningPage() {
   );
 
   const currentBanner = banners[currentBannerIndex];
-
+  const foodImages =
+    activeHouse === "greater-heights"
+      ? [ghOutdoorDining, ghDining, diningInterior]
+      : [nhDining2, nhDining1, diningInterior];
   return (
     <>
       {/* Hero Section */}
-      <section className="relative h-[50vh] min-h-[350px]">
+      <section className="relative -mt-[88px] h-[50vh] min-h-[350px]">
         <img src={heroImage} alt="Dining" className="absolute inset-0 h-full w-full object-cover" />
         <div className="hero-overlay absolute inset-0" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center px-4">
@@ -89,6 +90,37 @@ function DiningPage() {
           <p className="mt-4 max-w-xl text-sm text-warm-white/80">
             Good food. Unhurried moments. A table worth lingering at.
           </p>
+        </div>
+      </section>
+
+      <section className="bg-cream py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-[1.05fr_0.95fr]">
+          <div className="grid grid-cols-2 gap-3">
+            <img
+              src={diningInterior}
+              alt="Dining room at the Heights"
+              className="h-64 w-full object-cover md:h-80"
+            />
+            <img
+              src={heroImage}
+              alt={`${houseName} dining setting`}
+              className="mt-8 h-64 w-full object-cover md:h-80"
+            />
+          </div>
+          <div>
+            <span className="section-label">FROM OUR KITCHEN</span>
+            <h2 className="section-title mt-2">Good food. Beautifully shared.</h2>
+            <p className="mt-5 text-sm leading-relaxed text-muted-foreground md:text-base">
+              Savour gourmet dishes and refreshing cocktails at {houseName}'s elegant restaurant and
+              bar.
+            </p>
+            <div className="mt-8 border-t border-border pt-6">
+              <p className="font-accent text-2xl text-gold-dark">A table worth lingering at.</p>
+              <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">
+                Breakfast · Lunch · Dinner
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -190,58 +222,115 @@ function DiningPage() {
             <span className="section-label">Our Menu</span>
             <span className="section-label block mt-2">GOOD MORNINGS</span>
             <h2 className="section-title mt-2">Start the day at the table.</h2>
-            {menuImage && (
-              <div className="mt-4">
-                <button
-                  onClick={() => setMenuModalOpen(true)}
-                  className="inline-flex items-center gap-2 text-xs text-gold-dark hover:text-gold underline underline-offset-4"
-                >
-                  <img
-                    src={menuImage.image_url}
-                    alt={menuImage.title}
-                    className="h-16 w-auto object-contain border border-border rounded"
-                  />
-                  <span>Click to view full menu</span>
-                </button>
-              </div>
-            )}
           </div>
+
+          {menuImages.length > 0 && (
+            <div className="mb-16 border-y border-border py-10">
+              <div className="mb-8 flex items-end justify-between gap-4">
+                <div>
+                  <span className="section-label">MENUS TO EXPLORE</span>
+                  <h2 className="section-title mt-2">Choose something delicious.</h2>
+                </div>
+                <p className="max-w-xs text-right text-xs leading-relaxed text-muted-foreground">
+                  View each menu full-size or download it to keep for later.
+                </p>
+              </div>
+              <div className="grid gap-5 md:grid-cols-3">
+                {menuImages.slice(0, 3).map((menu) => (
+                  <article key={menu.id} className="overflow-hidden border border-border bg-card">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMenu(menu)}
+                      className="block w-full text-left"
+                    >
+                      <img
+                        src={menu.image_url}
+                        alt={menu.title}
+                        className="h-52 w-full object-cover"
+                      />
+                    </button>
+                    <div className="flex items-center justify-between gap-3 p-4">
+                      <div>
+                        <h3 className="font-heading text-lg text-foreground">{menu.title}</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {menu.caption || "Explore our menu"}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMenu(menu)}
+                          className="btn-gold-outline px-3 py-2 text-[10px]"
+                        >
+                          View
+                        </button>
+                        <a
+                          href={menu.image_url}
+                          download={menu.title || "menu"}
+                          className="btn-gold p-2"
+                          aria-label={`Download ${menu.title}`}
+                        >
+                          <Download className="h-4 w-4" />
+                        </a>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
 
           <p className="text-center text-sm text-muted-foreground mb-12 max-w-lg mx-auto">
             Savour gourmet dishes and refreshing cocktails at {houseName}'s elegant restaurant and
             bar.
           </p>
 
-          {categories.map((meal) => (
+          {categories.map((meal, index) => (
             <motion.div
               key={meal}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="mb-12"
+              className="mb-12 grid items-center gap-8 border-t border-border pt-8 md:grid-cols-2"
             >
-              <h2 className="font-heading text-2xl text-foreground mb-6 border-b border-border pb-3">
-                {meal === "breakfast"
-                  ? "Start the day at the table."
-                  : meal === "lunch"
-                    ? "Gather around the grill."
-                    : "Stay for supper."}
-              </h2>
-              <div className="space-y-4">
-                {(grouped[meal] || []).map((item: any) => (
-                  <div key={item.id} className="flex justify-between items-start gap-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-foreground">{item.name}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+              <div className={index % 2 === 1 ? "md:order-2" : ""}>
+                <img
+                  src={foodImages[index]}
+                  alt={`${houseName} ${meal} dining selection`}
+                  className="h-64 w-full object-cover md:h-80"
+                />
+                <p className="font-accent mt-3 text-lg text-gold-dark">
+                  {meal === "breakfast"
+                    ? "Good mornings."
+                    : meal === "lunch"
+                      ? "Gather around the grill."
+                      : "Stay for supper."}
+                </p>
+              </div>
+              <div className={index % 2 === 1 ? "md:order-1" : ""}>
+                <h2 className="font-heading mb-6 border-b border-border pb-3 text-2xl text-foreground">
+                  {meal === "breakfast"
+                    ? "Start the day at the table."
+                    : meal === "lunch"
+                      ? "Gather around the grill."
+                      : "Stay for supper."}
+                </h2>
+                <div className="space-y-4">
+                  {(grouped[meal] || []).map((item: any) => (
+                    <div key={item.id} className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">{item.name}</h3>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{item.description}</p>
+                      </div>
+                      <span className="whitespace-nowrap text-sm font-semibold text-gold-dark">
+                        {item.price}
+                      </span>
                     </div>
-                    <span className="text-sm font-semibold text-gold-dark whitespace-nowrap">
-                      {item.price}
-                    </span>
-                  </div>
-                ))}
-                {(!grouped[meal] || grouped[meal].length === 0) && (
-                  <p className="text-xs text-muted-foreground">No items available.</p>
-                )}
+                  ))}
+                  {(!grouped[meal] || grouped[meal].length === 0) && (
+                    <p className="text-xs text-muted-foreground">No items available.</p>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}
@@ -259,39 +348,45 @@ function DiningPage() {
         Come hungry. Leave with another reason to return.
       </p>
 
-      {/* Menu Image Modal */}
       <AnimatePresence>
-        {menuModalOpen && menuImage && (
+        {selectedMenu && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-            onClick={() => setMenuModalOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setSelectedMenu(null)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative max-w-3xl w-full max-h-[90vh] overflow-auto"
-              onClick={(e) => e.stopPropagation()}
+              className="relative max-h-[90vh] max-w-4xl overflow-auto bg-card"
+              onClick={(event) => event.stopPropagation()}
             >
-              <div className="absolute top-4 right-4 z-10 flex gap-2">
+              <div className="absolute right-3 top-3 flex gap-2">
                 <a
-                  href={menuImage.image_url}
-                  download={menuImage.title || "menu"}
-                  className="bg-gold-dark text-warm-white p-2 hover:bg-gold transition-colors"
+                  href={selectedMenu.image_url}
+                  download={selectedMenu.title || "menu"}
+                  className="bg-gold-dark p-2 text-warm-white"
+                  aria-label={`Download ${selectedMenu.title}`}
                 >
                   <Download className="h-5 w-5" />
                 </a>
                 <button
-                  onClick={() => setMenuModalOpen(false)}
-                  className="bg-charcoal/80 text-warm-white p-2 hover:bg-charcoal transition-colors"
+                  type="button"
+                  onClick={() => setSelectedMenu(null)}
+                  className="bg-charcoal/90 p-2 text-warm-white"
+                  aria-label="Close menu"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <img src={menuImage.image_url} alt={menuImage.title} className="w-full h-auto" />
+              <img
+                src={selectedMenu.image_url}
+                alt={selectedMenu.title}
+                className="max-h-[85vh] w-full object-contain"
+              />
+              <p className="p-4 font-heading text-xl text-foreground">{selectedMenu.title}</p>
             </motion.div>
           </motion.div>
         )}

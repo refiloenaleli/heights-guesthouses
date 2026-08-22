@@ -10,7 +10,6 @@ import {
   Car,
   UtensilsCrossed,
   Tag,
-  ArrowLeft,
   Phone,
   MessageCircle,
   Sparkles,
@@ -85,19 +84,6 @@ function HomePage() {
 
   return (
     <>
-      {/* Back to Properties */}
-      <div className="bg-charcoal border-b border-gold/20">
-        <div className="mx-auto max-w-6xl px-4 py-3">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-gold-light/70 hover:text-gold-light transition-colors"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            All Properties
-          </Link>
-        </div>
-      </div>
-
       {/* Hero */}
       <section className="relative h-[85vh] min-h-[600px] -mt-[88px]">
         <img

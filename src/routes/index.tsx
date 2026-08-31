@@ -12,6 +12,7 @@ import {
   Car,
 } from "lucide-react";
 import { useGuestHouse, type GuestHouse } from "@/lib/guest-house-context";
+import { useSiteImage } from "@/lib/site-images-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
 import ghLogo from "@/assets/gh-logo.jpg";
@@ -64,13 +65,18 @@ const properties: {
 
 function PropertySelectPage() {
   const { setActiveHouse } = useGuestHouse();
+  const landingHero = useSiteImage("landing.hero", ghExterior);
+  const cardImages: Record<GuestHouse, string> = {
+    "greater-heights": useSiteImage("landing.card.greater-heights", ghExterior),
+    "new-heights": useSiteImage("landing.card.new-heights", nhExterior1),
+  };
 
   return (
     <>
       {/* Hero */}
       <section className="relative h-[70vh] min-h-[500px] -mt-[60px]">
         <img
-          src={ghExterior}
+          src={landingHero}
           alt="Heights Guest Houses"
           className="absolute inset-0 h-full w-full object-cover"
           width={1920}
@@ -164,7 +170,7 @@ function PropertySelectPage() {
                 {/* Property Image */}
                 <div className="relative h-72 overflow-hidden">
                   <img
-                    src={property.image}
+                    src={cardImages[property.id]}
                     alt={property.name}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     width={800}

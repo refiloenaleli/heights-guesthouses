@@ -56,6 +56,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      contact_inquiries: {
+        Row: {
+          id: string;
+          guest_house: string;
+          sender_name: string;
+          sender_email: string;
+          subject: string;
+          message: string;
+          is_read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          guest_house: string;
+          sender_name: string;
+          sender_email: string;
+          subject: string;
+          message: string;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          guest_house?: string;
+          sender_name?: string;
+          sender_email?: string;
+          subject?: string;
+          message?: string;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       contact_settings: {
         Row: {
           address: string;
@@ -227,6 +260,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      site_images: {
+        Row: {
+          alt_text: string;
+          created_at: string;
+          display_order: number;
+          id: string;
+          image_url: string;
+          slot_key: string;
+          updated_at: string;
+        };
+        Insert: {
+          alt_text?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          image_url: string;
+          slot_key: string;
+          updated_at?: string;
+        };
+        Update: {
+          alt_text?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          image_url?: string;
+          slot_key?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       room_prices: {
         Row: {
           created_at: string;
@@ -347,6 +410,7 @@ export type Database = {
           guest_house: string;
           image_url: string;
           title: string;
+          caption: string | null;
           is_active: boolean;
           created_at: string;
           updated_at: string;
@@ -356,6 +420,7 @@ export type Database = {
           guest_house: string;
           image_url: string;
           title?: string;
+          caption?: string | null;
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -365,6 +430,7 @@ export type Database = {
           guest_house?: string;
           image_url?: string;
           title?: string;
+          caption?: string | null;
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;

@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { Star, ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Review = Tables<"reviews">;
 
 export const Route = createFileRoute("/reviews")({
   component: ReviewsPage,
@@ -36,7 +39,7 @@ function StarRating({
 
 function ReviewsPage() {
   const { houseName, activeHouse } = useGuestHouse();
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [newReview, setNewReview] = useState({ name: "", rating: 5, comment: "" });
   const [submitted, setSubmitted] = useState(false);
@@ -74,7 +77,7 @@ function ReviewsPage() {
 
   return (
     <>
-{/* Back to Properties */}
+      {/* Back to Properties */}
       <div className="bg-charcoal/95 border-b border-gold/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link

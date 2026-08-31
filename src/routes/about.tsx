@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
+import { useSiteImage } from "@/lib/site-images-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 
 export const Route = createFileRoute("/about")({
@@ -10,12 +11,13 @@ export const Route = createFileRoute("/about")({
 
 function AboutPage() {
   const { houseName } = useGuestHouse();
+  const heroImage = useSiteImage("about.hero", ghExterior);
 
   return (
     <>
       <section className="relative min-h-[520px] overflow-hidden bg-charcoal">
         <img
-          src={ghExterior}
+          src={heroImage}
           alt="Heights Guest Houses"
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -36,18 +38,18 @@ function AboutPage() {
             </p>
           </motion.div>
         </div>
-{/* Back to Properties */}
-      <div className="bg-charcoal/95 border-b border-gold/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            All Properties
-          </Link>
+        {/* Back to Properties */}
+        <div className="bg-charcoal/95 border-b border-gold/10">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              All Properties
+            </Link>
+          </div>
         </div>
-      </div>
       </section>
 
       <section className="bg-cream py-20">

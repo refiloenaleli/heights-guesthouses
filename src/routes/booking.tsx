@@ -40,8 +40,11 @@ function BookingPage() {
 
   const bookingMessage = `Hello, I would like to book at ${houseName}.\n\nName: ${form.name}\nCheck-in: ${form.checkIn}\nCheck-out: ${form.checkOut}\nRoom: ${form.roomType}\nGuests: ${form.guests}\nPhone: ${form.phone}\n\n${form.message}`;
 
-  const saveBooking = async () => {
-    await supabase.from("bookings").insert({
+  const [saveError, setSaveError] = useState("");
+
+  const saveBooking = async (): Promise<boolean> => {
+    const guestsCount = parseInt(form.guests, 10);
+    const { error } = await supabase.from("bookings").insert({
       guest_house: activeHouse,
       guest_name: form.name,
       guest_email: form.email,
@@ -49,9 +52,17 @@ function BookingPage() {
       check_in: form.checkIn,
       check_out: form.checkOut,
       room_type: form.roomType.split(" - ")[0],
-      guests_count: parseInt(form.guests),
+      guests_count: Number.isNaN(guestsCount) ? 1 : guestsCount,
       special_requests: form.message || null,
     });
+    if (error) {
+      setSaveError(
+        `We couldn't save your booking request (${error.message}). You can still send it via WhatsApp or email below.`,
+      );
+      return false;
+    }
+    setSaveError("");
+    return true;
   };
 
   const handleWhatsApp = async () => {
@@ -76,7 +87,7 @@ function BookingPage() {
 
   return (
     <>
-{/* Back to Properties */}
+      {/* Back to Properties */}
       <div className="bg-charcoal/95 border-b border-gold/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link
@@ -138,6 +149,11 @@ function BookingPage() {
               className="bg-card border border-border p-8"
             >
               <div className="space-y-4">
+                {saveError && (
+                  <div className="border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    {saveError}
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs tracking-widest uppercase text-muted-foreground mb-1 block">

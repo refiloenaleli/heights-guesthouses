@@ -16,60 +16,91 @@ function AdminLoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        checkAdmin(session.user.id);
-      }
-    });
-  }, []);
+    let cancelled = false;
 
-  const checkAdmin = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    if (data) {
-      navigate({ to: "/admin/dashboard" });
-    }
-  };
+    const checkAdmin = async (userId: string) => {
+      try {
+        const { data } = await supabase.rpc("has_role", {
+          _user_id: userId,
+          _role: "admin",
+        });
+        if (!cancelled && data) {
+          navigate({ to: "/admin/dashboard" });
+        }
+      } catch {
+        // Never crash the page on an auth probe failure — user can still sign in manually.
+      }
+    };
+
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (!cancelled && session) {
+          checkAdmin(session.user.id);
+        }
+      })
+      .catch(() => {
+        // Ignore — the sign-in form still works even if the session probe fails.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (data.user) {
-      const { data: isAdmin } = await supabase.rpc("has_role", {
-        _user_id: data.user.id,
-        _role: "admin",
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      if (!isAdmin) {
-        setError("You do not have admin access.");
-        await supabase.auth.signOut();
-        setLoading(false);
+      if (authError) {
+        setError(
+          authError.message === "Invalid login credentials"
+            ? "Incorrect email or password. Please try again."
+            : authError.message,
+        );
         return;
       }
 
-      navigate({ to: "/admin/dashboard" });
-    }
+      if (data.user) {
+        const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+          _user_id: data.user.id,
+          _role: "admin",
+        });
 
-    setLoading(false);
+        if (roleError) {
+          setError(`Could not verify admin access: ${roleError.message}`);
+          await supabase.auth.signOut().catch(() => {});
+          return;
+        }
+
+        if (!isAdmin) {
+          setError(
+            "This account does not have admin access. Ask the site owner to grant your account the admin role.",
+          );
+          await supabase.auth.signOut().catch(() => {});
+          return;
+        }
+
+        navigate({ to: "/admin/dashboard" });
+      }
+    } catch (thrown) {
+      setError(
+        `Something went wrong while signing in: ${thrown instanceof Error ? thrown.message : "unknown error"}. Check your internet connection and try again.`,
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-charcoal flex items-center justify-center px-4 -mt-[60px] pt-[60px]">
+    <div className="min-h-screen bg-charcoal flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center border border-gold-dark">

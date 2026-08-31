@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGuestHouse } from "@/lib/guest-house-context";
+import { useSiteImage, useSiteImageList } from "@/lib/site-images-context";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { ChevronLeft, ChevronRight, Download, X, ArrowLeft } from "lucide-react";
 import diningInterior from "@/assets/dining.jpg";
 import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
@@ -10,18 +12,26 @@ import ghDining from "@/assets/gh-dining.jpg";
 import nhDining2 from "@/assets/nh-dining2.jpg";
 import nhDining1 from "@/assets/nh-dining1.jpg";
 
+type MenuItem = Tables<"menu_items">;
+type DiningBanner = Tables<"dining_banners">;
+type MenuImage = Tables<"menu_images">;
+
 export const Route = createFileRoute("/dining")({
   component: DiningPage,
 });
 
 function DiningPage() {
   const { houseName, activeHouse } = useGuestHouse();
-  const [menuItems, setMenuItems] = useState<any[]>([]);
-  const [banners, setBanners] = useState<any[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [banners, setBanners] = useState<DiningBanner[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const [menuImages, setMenuImages] = useState<any[]>([]);
-  const [selectedMenu, setSelectedMenu] = useState<any>(null);
-  const heroImage = activeHouse === "greater-heights" ? ghOutdoorDining : nhDining2;
+  const [menuImages, setMenuImages] = useState<MenuImage[]>([]);
+  const [selectedMenu, setSelectedMenu] = useState<MenuImage | null>(null);
+  const heroImage = useSiteImage(
+    `${activeHouse}.dining.hero`,
+    activeHouse === "greater-heights" ? ghOutdoorDining : nhDining2,
+  );
+  const interiorImage = useSiteImage(`${activeHouse}.dining.interior`, diningInterior);
 
   useEffect(() => {
     supabase
@@ -35,6 +45,8 @@ function DiningPage() {
   }, [activeHouse]);
 
   useEffect(() => {
+    let cancelled = false;
+
     // Fetch dining banners
     supabase
       .from("dining_banners")
@@ -43,7 +55,10 @@ function DiningPage() {
       .eq("is_active", true)
       .order("display_order")
       .then(({ data }) => {
+        if (cancelled) return;
         setBanners(data || []);
+        // Reset index so a stale index can never point past the new list
+        setCurrentBannerIndex(0);
       });
 
     supabase
@@ -52,7 +67,13 @@ function DiningPage() {
       .eq("guest_house", activeHouse)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
-      .then(({ data }) => setMenuImages(data || []));
+      .then(({ data }) => {
+        if (!cancelled) setMenuImages(data || []);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [activeHouse]);
 
   // Auto-rotate banners
@@ -70,14 +91,20 @@ function DiningPage() {
       acc[cat] = menuItems.filter((item) => item.category === cat);
       return acc;
     },
-    {} as Record<string, any[]>,
+    {} as Record<string, MenuItem[]>,
   );
 
-  const currentBanner = banners[currentBannerIndex];
-  const foodImages =
+  // Guard against any stale/out-of-range index so rendering can never crash
+  const safeBannerIndex =
+    banners.length > 0
+      ? ((currentBannerIndex % banners.length) + banners.length) % banners.length
+      : 0;
+  const currentBanner = banners[safeBannerIndex];
+  const mealImageFallbacks =
     activeHouse === "greater-heights"
       ? [ghOutdoorDining, ghDining, diningInterior]
       : [nhDining2, nhDining1, diningInterior];
+  const foodImages = useSiteImageList(`${activeHouse}.dining.meals`, mealImageFallbacks);
   return (
     <>
       {/* Hero Section */}
@@ -100,7 +127,7 @@ function DiningPage() {
           </motion.div>
         </div>
       </section>
-{/* Back to Properties */}
+      {/* Back to Properties */}
       <div className="bg-charcoal/95 border-b border-gold/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link
@@ -117,7 +144,7 @@ function DiningPage() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-[1.05fr_0.95fr]">
           <div className="grid grid-cols-2 gap-3">
             <img
-              src={diningInterior}
+              src={interiorImage}
               alt="Dining room at the Heights"
               className="h-64 w-full object-cover md:h-80"
             />
@@ -315,7 +342,7 @@ function DiningPage() {
             >
               <div className={index % 2 === 1 ? "md:order-2" : ""}>
                 <img
-                  src={foodImages[index]}
+                  src={foodImages[index % foodImages.length]}
                   alt={`${houseName} ${meal} dining selection`}
                   className="h-64 w-full object-cover md:h-80"
                 />
@@ -336,7 +363,7 @@ function DiningPage() {
                       : "Stay for supper."}
                 </h2>
                 <div className="space-y-4">
-                  {(grouped[meal] || []).map((item: any) => (
+                  {(grouped[meal] || []).map((item) => (
                     <div key={item.id} className="flex items-start justify-between gap-4">
                       <div>
                         <h3 className="text-sm font-semibold text-foreground">{item.name}</h3>

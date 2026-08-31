@@ -109,6 +109,8 @@ function AccommodationPage() {
   const [rooms, setRooms] = useState<RoomRecord[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<RoomRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  // Admin-uploaded images per room type (from the "Room Images" dashboard tab).
+  const [dbRoomImages, setDbRoomImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     supabase
@@ -120,14 +122,48 @@ function AccommodationPage() {
         const savedRooms = data || [];
         const savedByType = new Map(savedRooms.map((room) => [room.room_type, room]));
         setRooms(
-          defaultRooms.map((room) => ({
-            ...room,
-            ...savedByType.get(room.room_type),
-            id: savedByType.get(room.room_type)?.id || `${activeHouse}-${room.room_type}`,
-          })),
+          defaultRooms.map((room) => {
+            const saved = savedByType.get(room.room_type);
+            if (!saved) return { ...room, id: `${activeHouse}-${room.room_type}` };
+            return {
+              id: saved.id,
+              room_type: saved.room_type,
+              price: saved.price,
+              price_note: saved.price_note ?? undefined,
+              description: saved.description,
+              long_description: saved.long_description ?? undefined,
+              bed_info: saved.bed_info ?? undefined,
+              features: saved.features,
+            };
+          }),
         );
       });
   }, [activeHouse]);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("room_images")
+      .select("room_type, image_url")
+      .eq("guest_house", activeHouse)
+      .order("display_order")
+      .then(({ data }) => {
+        if (cancelled) return;
+        const byType: Record<string, string> = {};
+        for (const row of data || []) {
+          // First image for each room type wins (display order respected)
+          if (!byType[row.room_type]) byType[row.room_type] = row.image_url;
+        }
+        setDbRoomImages(byType);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeHouse]);
+
+  /** Admin-managed room image if uploaded, otherwise the built-in default. */
+  const imageFor = (roomType: string): string =>
+    dbRoomImages[roomType] || roomImages[activeHouse]?.[roomType] || ghSingleRoom;
 
   const openRoomModal = (room: RoomRecord) => {
     setSelectedRoom(room);
@@ -135,7 +171,7 @@ function AccommodationPage() {
   };
 
   const accommodationRooms = rooms.filter((room) => room.room_type !== "Conference & Banqueting");
-  const heroImage = roomImages[activeHouse]?.["Executive Room"] || ghSingleRoom;
+  const heroImage = imageFor("Executive Room");
 
   return (
     <>
@@ -170,7 +206,7 @@ function AccommodationPage() {
           </motion.div>
         </div>
       </section>
-{/* Back to Properties */}
+      {/* Back to Properties */}
       <div className="bg-charcoal/95 border-b border-gold/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link
@@ -231,7 +267,7 @@ function AccommodationPage() {
             className="relative"
           >
             <img
-              src={roomImages[activeHouse]?.["Couple Room"] || ghCoupleRoom}
+              src={imageFor("Couple Room")}
               alt="Comfortable guest room"
               className="h-[360px] w-full object-cover md:h-[440px]"
             />
@@ -264,7 +300,7 @@ function AccommodationPage() {
                   price={roomRates[room.room_type] || room.price}
                   priceNote="per night"
                   description={room.description}
-                  image={roomImages[activeHouse]?.[room.room_type] || ghSingleRoom}
+                  image={imageFor(room.room_type)}
                   features={room.features || []}
                   index={i}
                   onViewRoom={() =>
@@ -327,7 +363,7 @@ function AccommodationPage() {
           onClose={() => setModalOpen(false)}
           room={{
             ...selectedRoom,
-            image: roomImages[activeHouse]?.[selectedRoom.room_type] || ghSingleRoom,
+            image: imageFor(selectedRoom.room_type),
           }}
           activeHouse={activeHouse}
         />

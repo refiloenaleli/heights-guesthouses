@@ -1,12 +1,6 @@
-import {
-  Outlet,
-  Link,
-  createRootRoute,
-  HeadContent,
-  Scripts,
-  useLocation,
-} from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, useLocation } from "@tanstack/react-router";
 import { GuestHouseProvider, useGuestHouse } from "@/lib/guest-house-context";
+import { SiteImagesProvider } from "@/lib/site-images-context";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
@@ -56,29 +50,16 @@ export const Route = createRootRoute({
       // ✅ NO favicon here at all
     ],
   }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
 
-function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
-
 function RootComponent() {
   return (
     <GuestHouseProvider>
-      <ThemedApp />
+      <SiteImagesProvider>
+        <ThemedApp />
+      </SiteImagesProvider>
     </GuestHouseProvider>
   );
 }
@@ -87,14 +68,15 @@ function ThemedApp() {
   const { activeHouse } = useGuestHouse();
   const location = useLocation();
   const theme = location.pathname === "/" ? "landing" : activeHouse;
+  const isAdmin = location.pathname.startsWith("/admin");
 
   return (
     <div data-house-theme={theme}>
-      <Navbar />
+      {!isAdmin && <Navbar />}
       <main>
         <Outlet />
       </main>
-      <Footer />
+      {!isAdmin && <Footer />}
     </div>
   );
 }

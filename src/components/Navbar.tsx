@@ -2,6 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
+import { useSiteImage } from "@/lib/site-images-context";
 import ghLogo from "@/assets/gh-logo.jpg";
 import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
 
@@ -20,20 +21,17 @@ export function Navbar() {
   const { activeHouse, houseName, phoneNumber } = useGuestHouse();
   const location = useLocation();
 
-  const logo = activeHouse === "greater-heights" ? ghLogo : nhLogo;
+  const logo = useSiteImage(
+    `logo.${activeHouse}`,
+    activeHouse === "greater-heights" ? ghLogo : nhLogo,
+  );
   const isHome = location.pathname === "/";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-charcoal/90 backdrop-blur-md border-b border-gold/10">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <Link to="/home" className="flex items-center gap-3">
-          {!isHome && (
-            <img
-              src={logo}
-              alt={houseName}
-              className="h-12 w-12 object-contain"
-            />
-          )}
+          {!isHome && <img src={logo} alt={houseName} className="h-12 w-12 object-contain" />}
           <div className="hidden sm:block">
             <span className="block text-sm font-heading text-warm-white leading-tight tracking-wide">
               {houseName}
@@ -47,9 +45,7 @@ export function Navbar() {
               key={link.to}
               to={link.to}
               className={`text-xs tracking-[0.2em] uppercase transition-colors font-medium ${
-                location.pathname === link.to
-                  ? "text-gold"
-                  : "text-warm-white/70 hover:text-gold"
+                location.pathname === link.to ? "text-gold" : "text-warm-white/70 hover:text-gold"
               }`}
             >
               {link.label}
@@ -66,7 +62,10 @@ export function Navbar() {
           >
             <Phone className="h-4 w-4" />
           </a>
-          <Link to="/booking" className="hidden sm:block btn-gold text-[10px] px-5 py-2.5 tracking-[0.2em]">
+          <Link
+            to="/booking"
+            className="hidden sm:block btn-gold text-[10px] px-5 py-2.5 tracking-[0.2em]"
+          >
             Reservation
           </Link>
           <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden text-warm-white">

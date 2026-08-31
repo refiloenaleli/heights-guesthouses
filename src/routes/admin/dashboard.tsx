@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import {
   CalendarDays,
   MessageSquare,
@@ -21,7 +22,20 @@ import {
   Plus,
   Edit,
   Save,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
+
+type Booking = Tables<"bookings">;
+type Review = Tables<"reviews">;
+type GalleryImage = Tables<"gallery_images">;
+type ContactSettings = Tables<"contact_settings">;
+type Promotion = Tables<"promotions">;
+type MenuItem = Tables<"menu_items">;
+type RoomPrice = Tables<"room_prices">;
+type RoomImage = Tables<"room_images">;
+type DiningBanner = Tables<"dining_banners">;
+type MenuImageRow = Tables<"menu_images">;
 
 export const Route = createFileRoute("/admin/dashboard")({
   component: AdminDashboard,
@@ -37,7 +51,8 @@ type Tab =
   | "prices"
   | "room-images"
   | "dining-banners"
-  | "menu-images";
+  | "menu-images"
+  | "site-images";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("bookings");
@@ -48,25 +63,39 @@ function AdminDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let cancelled = false;
+
     const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        navigate({ to: "/admin/login" });
-        return;
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (!session) {
+          navigate({ to: "/admin/login" });
+          return;
+        }
+        const { data, error } = await supabase.rpc("has_role", {
+          _user_id: session.user.id,
+          _role: "admin",
+        });
+        if (cancelled) return;
+        if (error || !data) {
+          // Not an admin (or role lookup failed) — sign out cleanly and return to login.
+          await supabase.auth.signOut().catch(() => {});
+          navigate({ to: "/admin/login" });
+          return;
+        }
+        setIsAdmin(true);
+      } catch {
+        if (!cancelled) navigate({ to: "/admin/login" });
       }
-      const { data } = await supabase.rpc("has_role", {
-        _user_id: session.user.id,
-        _role: "admin",
-      });
-      if (!data) {
-        navigate({ to: "/admin/login" });
-        return;
-      }
-      setIsAdmin(true);
     };
+
     checkAuth();
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -76,7 +105,7 @@ function AdminDashboard() {
 
   if (isAdmin === null)
     return (
-      <div className="min-h-screen bg-charcoal flex items-center justify-center -mt-[60px] pt-[60px]">
+      <div className="min-h-screen bg-charcoal flex items-center justify-center -mt-[88px] pt-[88px]">
         <p className="text-warm-white/60">Loading...</p>
       </div>
     );
@@ -92,10 +121,11 @@ function AdminDashboard() {
     { key: "room-images", label: "Room Images", icon: Image },
     { key: "dining-banners", label: "Dining Banners", icon: Image },
     { key: "menu-images", label: "Menu Images", icon: Image },
+    { key: "site-images", label: "Site Images", icon: Image },
   ];
 
   return (
-    <div className="min-h-screen bg-background -mt-[60px] pt-[60px]">
+    <div className="min-h-screen bg-background -mt-[88px] pt-[88px]">
       <div className="bg-charcoal border-b border-gold/20">
         <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -105,7 +135,9 @@ function AdminDashboard() {
           <div className="flex items-center gap-4">
             <select
               value={selectedHouse}
-              onChange={(e) => setSelectedHouse(e.target.value as any)}
+              onChange={(e) =>
+                setSelectedHouse(e.target.value as "greater-heights" | "new-heights")
+              }
               className="bg-charcoal-light border border-gold/20 text-warm-white text-xs px-3 py-2 focus:outline-none focus:border-gold-dark"
             >
               <option value="greater-heights">Greater Heights</option>
@@ -155,6 +187,7 @@ function AdminDashboard() {
         {activeTab === "room-images" && <RoomImagesPanel house={selectedHouse} />}
         {activeTab === "dining-banners" && <DiningBannersPanel house={selectedHouse} />}
         {activeTab === "menu-images" && <MenuImagesPanel house={selectedHouse} />}
+        {activeTab === "site-images" && <SiteImagesPanel house={selectedHouse} />}
       </div>
     </div>
   );
@@ -162,7 +195,7 @@ function AdminDashboard() {
 
 /* ==================== BOOKINGS ==================== */
 function BookingsPanel({ house }: { house: string }) {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetch = useCallback(async () => {
@@ -255,7 +288,7 @@ function BookingsPanel({ house }: { house: string }) {
 
 /* ==================== REVIEWS ==================== */
 function ReviewsPanel({ house }: { house: string }) {
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -334,7 +367,7 @@ function ReviewsPanel({ house }: { house: string }) {
 
 /* ==================== GALLERY ==================== */
 function GalleryPanel({ house }: { house: string }) {
-  const [images, setImages] = useState<any[]>([]);
+  const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [newAlt, setNewAlt] = useState("");
@@ -456,7 +489,7 @@ function GalleryPanel({ house }: { house: string }) {
 
 /* ==================== CONTACTS ==================== */
 function ContactsPanel({ house }: { house: string }) {
-  const [contact, setContact] = useState<any>(null);
+  const [contact, setContact] = useState<ContactSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -510,7 +543,7 @@ function ContactsPanel({ house }: { house: string }) {
             </label>
             <input
               type="text"
-              value={contact[field.key] || ""}
+              value={contact[field.key as keyof ContactSettings] || ""}
               onChange={(e) => setContact({ ...contact, [field.key]: e.target.value })}
               className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
             />
@@ -529,9 +562,10 @@ function ContactsPanel({ house }: { house: string }) {
 
 /* ==================== PROMOTIONS ==================== */
 function PromotionsPanel({ house }: { house: string }) {
-  const [promos, setPromos] = useState<any[]>([]);
+  const [promos, setPromos] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -539,6 +573,7 @@ function PromotionsPanel({ house }: { house: string }) {
     valid_from: "",
     valid_until: "",
     is_active: true,
+    image_url: "",
   });
 
   const fetchData = useCallback(async () => {
@@ -555,9 +590,30 @@ function PromotionsPanel({ house }: { house: string }) {
     fetchData();
   }, [fetchData]);
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploadingImage(true);
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `promos/${house}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("site_images").upload(path, file);
+    if (error) {
+      alert("Image upload failed: " + error.message);
+    } else {
+      const { data } = supabase.storage.from("site_images").getPublicUrl(path);
+      setForm((p) => ({ ...p, image_url: data.publicUrl }));
+    }
+    setUploadingImage(false);
+  };
+
   const handleAdd = async () => {
     if (!form.title) return;
-    await supabase.from("promotions").insert({ ...form, guest_house: house });
+    await supabase.from("promotions").insert({
+      ...form,
+      image_url: form.image_url || null,
+      guest_house: house,
+    });
     setForm({
       title: "",
       description: "",
@@ -565,6 +621,7 @@ function PromotionsPanel({ house }: { house: string }) {
       valid_from: "",
       valid_until: "",
       is_active: true,
+      image_url: "",
     });
     setShowForm(false);
     fetchData();
@@ -608,6 +665,33 @@ function PromotionsPanel({ house }: { house: string }) {
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="w-full border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
           />
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">
+              Promo Image (optional — shown on the home page banner)
+            </label>
+            {form.image_url && (
+              <img
+                src={form.image_url}
+                alt="Promo preview"
+                className="h-20 w-32 object-cover border border-border mb-2"
+              />
+            )}
+            <label
+              className={`btn-gold-outline inline-flex cursor-pointer items-center gap-1.5 text-xs ${
+                uploadingImage ? "pointer-events-none opacity-50" : ""
+              }`}
+            >
+              <Upload className="h-3 w-3" />
+              {uploadingImage ? "Uploading..." : form.image_url ? "Replace Image" : "Upload Image"}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                disabled={uploadingImage}
+              />
+            </label>
+          </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Discount %</label>
@@ -657,7 +741,7 @@ function PromotionsPanel({ house }: { house: string }) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-sm font-semibold text-foreground">{p.title}</h3>
-                  {p.discount_percentage > 0 && (
+                  {(p.discount_percentage ?? 0) > 0 && (
                     <span className="text-[10px] px-2 py-0.5 bg-gold-dark text-warm-white font-bold">
                       {p.discount_percentage}% OFF
                     </span>
@@ -699,7 +783,7 @@ function PromotionsPanel({ house }: { house: string }) {
 
 /* ==================== MENUS ==================== */
 function MenusPanel({ house }: { house: string }) {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", price: "", category: "breakfast" });
@@ -736,7 +820,7 @@ function MenusPanel({ house }: { house: string }) {
     fetchData();
   };
 
-  const startEdit = (item: any) => {
+  const startEdit = (item: MenuItem) => {
     setEditingId(item.id);
     setEditForm({
       name: item.name,
@@ -893,7 +977,7 @@ function MenusPanel({ house }: { house: string }) {
 
 /* ==================== PRICES ==================== */
 function PricesPanel({ house }: { house: string }) {
-  const [prices, setPrices] = useState<any[]>([]);
+  const [prices, setPrices] = useState<RoomPrice[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ price: "", description: "", features: "" });
@@ -912,7 +996,7 @@ function PricesPanel({ house }: { house: string }) {
     fetchData();
   }, [fetchData]);
 
-  const startEdit = (item: any) => {
+  const startEdit = (item: RoomPrice) => {
     setEditingId(item.id);
     setEditForm({
       price: item.price,
@@ -1031,7 +1115,7 @@ function PricesPanel({ house }: { house: string }) {
 /* ==================== ROOM IMAGES ==================== */
 function RoomImagesPanel({ house }: { house: string }) {
   const [roomTypes, setRoomTypes] = useState<string[]>([]);
-  const [images, setImages] = useState<any[]>([]);
+  const [images, setImages] = useState<RoomImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedRoomType, setSelectedRoomType] = useState("");
@@ -1046,7 +1130,9 @@ function RoomImagesPanel({ house }: { house: string }) {
       .order("display_order");
     const types = [...new Set((prices || []).map((p) => p.room_type))];
     setRoomTypes(types);
-    if (!selectedRoomType && types.length > 0) setSelectedRoomType(types[0]);
+    // Keep the current selection only if it exists in this house's rooms,
+    // otherwise fall back to the first available room type.
+    setSelectedRoomType((prev) => (prev && types.includes(prev) ? prev : types[0] || ""));
     const { data } = await supabase
       .from("room_images")
       .select("*")
@@ -1178,7 +1264,7 @@ function RoomImagesPanel({ house }: { house: string }) {
 
 /* ==================== DINING BANNERS ==================== */
 function DiningBannersPanel({ house }: { house: string }) {
-  const [banners, setBanners] = useState<any[]>([]);
+  const [banners, setBanners] = useState<DiningBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -1235,7 +1321,7 @@ function DiningBannersPanel({ house }: { house: string }) {
     fetchData();
   };
 
-  const startEdit = (banner: any) => {
+  const startEdit = (banner: DiningBanner) => {
     setEditingId(banner.id);
     setEditForm({
       title: banner.title,
@@ -1428,7 +1514,7 @@ function DiningBannersPanel({ house }: { house: string }) {
 
 /* ==================== MENU IMAGES ==================== */
 function MenuImagesPanel({ house }: { house: string }) {
-  const [menuImages, setMenuImages] = useState<any[]>([]);
+  const [menuImages, setMenuImages] = useState<MenuImageRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [newTitle, setNewTitle] = useState("Menu");
@@ -1559,6 +1645,379 @@ function MenuImagesPanel({ house }: { house: string }) {
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ==================== SITE IMAGES ==================== */
+
+type SiteImageRow = {
+  id: string;
+  slot_key: string;
+  image_url: string;
+  alt_text: string;
+  display_order: number;
+};
+
+type SiteImageSlot = {
+  key: string;
+  label: string;
+  description?: string;
+  multi?: boolean;
+};
+
+// Slots shared by both guest houses (landing page & logos).
+const SHARED_SITE_IMAGE_SLOTS: SiteImageSlot[] = [
+  {
+    key: "landing.hero",
+    label: "Landing Page Hero",
+    description: "Full-width background photo on the welcome / property-select page.",
+  },
+  {
+    key: "landing.card.greater-heights",
+    label: "Landing Card — Greater Heights",
+    description: "Photo on the Greater Heights property card.",
+  },
+  {
+    key: "landing.card.new-heights",
+    label: "Landing Card — New Heights",
+    description: "Photo on the New Heights property card.",
+  },
+  {
+    key: "logo.greater-heights",
+    label: "Logo — Greater Heights",
+    description: "Shown in the website navbar and footer.",
+  },
+  {
+    key: "logo.new-heights",
+    label: "Logo — New Heights",
+    description: "Shown in the website navbar and footer.",
+  },
+];
+
+// Per-property slots. "{house}" is replaced with the selected house id.
+const HOUSE_SITE_IMAGE_SLOTS: SiteImageSlot[] = [
+  { key: "{house}.home.hero", label: "Home Page Hero" },
+  {
+    key: "{house}.home.welcome",
+    label: "Welcome Gallery",
+    multi: true,
+    description: "Photos shown beside the welcome text on the home page. Add as many as you like.",
+  },
+  { key: "{house}.home.dining_cta", label: "Home Dining Banner" },
+  { key: "{house}.about.hero", label: "About Page Hero" },
+  { key: "{house}.dining.hero", label: "Dining Page Hero" },
+  { key: "{house}.dining.interior", label: "Dining Interior Photo" },
+  {
+    key: "{house}.dining.meals",
+    label: "Dining Food Gallery",
+    multi: true,
+    description:
+      "Photos shown next to the breakfast, lunch and dinner menus. Add one per meal or more.",
+  },
+];
+
+const SITE_IMAGES_BUCKET = "site_images";
+
+function siteImagePathFromUrl(url: string): string | null {
+  const marker = `/object/public/${SITE_IMAGES_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  const raw = url.slice(idx + marker.length);
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+async function uploadSiteImageFile(slotKey: string, file: File): Promise<string | null> {
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `${slotKey.replace(/[^a-z0-9-]/gi, "-")}-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from(SITE_IMAGES_BUCKET).upload(path, file);
+  if (error) {
+    alert("Upload failed: " + error.message);
+    return null;
+  }
+  const { data } = supabase.storage.from(SITE_IMAGES_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+function SiteImagesPanel({ house }: { house: string }) {
+  const [rows, setRows] = useState<SiteImageRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("site_images")
+      .select("*")
+      .order("slot_key")
+      .order("display_order");
+    if (!error) setRows((data as SiteImageRow[]) || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  if (loading) return <p className="text-sm text-muted-foreground">Loading site images...</p>;
+
+  const houseName = house === "greater-heights" ? "Greater Heights" : "New Heights";
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-foreground mb-2">Site Images</h2>
+      <div className="mb-8 border border-gold/30 bg-gold/5 p-4">
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          These are all of the images that appear across the public website. Upload a photo to
+          override the built-in default, edit its description, reorder gallery photos, or remove an
+          override to restore the original. Gallery-style slots accept any number of images — use
+          "Add Image" to extend them.
+        </p>
+      </div>
+
+      <h3 className="mb-3 border-b border-border pb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Shared across the whole website
+      </h3>
+      <div className="space-y-4">
+        {SHARED_SITE_IMAGE_SLOTS.map((slot) => (
+          <SiteImageSlotEditor
+            key={slot.key}
+            slot={slot}
+            slotKey={slot.key}
+            rows={rows}
+            onChange={reload}
+          />
+        ))}
+      </div>
+
+      <h3 className="mt-10 mb-3 border-b border-border pb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        {houseName} pages
+      </h3>
+      <div className="space-y-4">
+        {HOUSE_SITE_IMAGE_SLOTS.map((slot) => (
+          <SiteImageSlotEditor
+            key={`${house}-${slot.key}`}
+            slot={slot}
+            slotKey={slot.key.replace("{house}", house)}
+            rows={rows}
+            onChange={reload}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SiteImageSlotEditor({
+  slot,
+  slotKey,
+  rows,
+  onChange,
+}: {
+  slot: SiteImageSlot;
+  slotKey: string;
+  rows: SiteImageRow[];
+  onChange: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [altDrafts, setAltDrafts] = useState<Record<string, string>>({});
+
+  const slotRows = rows
+    .filter((r) => r.slot_key === slotKey)
+    .sort((a, b) => a.display_order - b.display_order);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadSiteImageFile(slotKey, file);
+    if (url) {
+      if (!slot.multi && slotRows.length > 0) {
+        // Singleton slot: replace the existing override in place
+        const { error } = await supabase
+          .from("site_images")
+          .update({ image_url: url })
+          .eq("id", slotRows[0].id);
+        if (error) alert("Could not update image: " + error.message);
+      } else {
+        const nextOrder =
+          slotRows.length > 0 ? Math.max(...slotRows.map((r) => r.display_order)) + 1 : 0;
+        const { error } = await supabase.from("site_images").insert({
+          slot_key: slotKey,
+          image_url: url,
+          alt_text: "",
+          display_order: nextOrder,
+        });
+        if (error) alert("Could not save image: " + error.message);
+      }
+      onChange();
+    }
+    setUploading(false);
+  };
+
+  const handleSaveAlt = async (row: SiteImageRow) => {
+    const value = altDrafts[row.id];
+    if (value === undefined) return;
+    const { error } = await supabase
+      .from("site_images")
+      .update({ alt_text: value })
+      .eq("id", row.id);
+    if (error) {
+      alert("Could not update description: " + error.message);
+      return;
+    }
+    setAltDrafts((p) => {
+      const next = { ...p };
+      delete next[row.id];
+      return next;
+    });
+    onChange();
+  };
+
+  const handleRemove = async (row: SiteImageRow) => {
+    if (!window.confirm("Remove this image? The website will show the default photo again.")) {
+      return;
+    }
+    const { error } = await supabase.from("site_images").delete().eq("id", row.id);
+    if (error) {
+      alert("Could not remove image: " + error.message);
+      return;
+    }
+    // Best-effort cleanup of the uploaded file in storage
+    const path = siteImagePathFromUrl(row.image_url);
+    if (path) {
+      await supabase.storage.from(SITE_IMAGES_BUCKET).remove([path]);
+    }
+    onChange();
+  };
+
+  const handleMove = async (index: number, dir: -1 | 1) => {
+    const swapIndex = index + dir;
+    if (swapIndex < 0 || swapIndex >= slotRows.length) return;
+    const a = slotRows[index];
+    const b = slotRows[swapIndex];
+    const { error: errA } = await supabase
+      .from("site_images")
+      .update({ display_order: b.display_order })
+      .eq("id", a.id);
+    const { error: errB } = await supabase
+      .from("site_images")
+      .update({ display_order: a.display_order })
+      .eq("id", b.id);
+    if (errA || errB) {
+      alert("Could not reorder images.");
+      return;
+    }
+    onChange();
+  };
+
+  return (
+    <div className="bg-cream border border-border p-5">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h4 className="text-sm font-semibold text-foreground">{slot.label}</h4>
+          {slot.description && (
+            <p className="mt-0.5 text-xs text-muted-foreground">{slot.description}</p>
+          )}
+        </div>
+        <label
+          className={`btn-gold inline-flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[10px] ${
+            uploading ? "pointer-events-none opacity-50" : ""
+          }`}
+        >
+          {slot.multi ? <Plus className="h-3 w-3" /> : <Upload className="h-3 w-3" />}
+          {uploading
+            ? "Uploading..."
+            : slot.multi
+              ? "Add Image"
+              : slotRows.length > 0
+                ? "Replace"
+                : "Upload"}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleUpload}
+            className="hidden"
+            disabled={uploading}
+          />
+        </label>
+      </div>
+
+      {slotRows.length === 0 ? (
+        <p className="text-xs italic text-muted-foreground">
+          No custom image yet — the website is using its built-in photo for this slot.
+        </p>
+      ) : (
+        <div
+          className={`grid gap-4 ${slot.multi ? "md:grid-cols-2 xl:grid-cols-3" : "sm:flex sm:items-center"}`}
+        >
+          {slotRows.map((row, index) => (
+            <div key={row.id} className="border border-border bg-card p-3">
+              <div className="relative mb-2 overflow-hidden bg-charcoal/5">
+                <img
+                  src={row.image_url}
+                  alt={row.alt_text || slot.label}
+                  className="h-36 w-full object-cover"
+                />
+              </div>
+              <input
+                type="text"
+                placeholder="Description (alt text)"
+                value={altDrafts[row.id] ?? row.alt_text}
+                onChange={(e) => setAltDrafts((p) => ({ ...p, [row.id]: e.target.value }))}
+                className="mb-2 w-full border border-border bg-background px-2.5 py-1.5 text-xs focus:border-gold-dark focus:outline-none"
+              />
+              <div className="flex items-center justify-between gap-2">
+                {altDrafts[row.id] !== undefined && altDrafts[row.id] !== row.alt_text ? (
+                  <button
+                    onClick={() => handleSaveAlt(row)}
+                    className="inline-flex items-center gap-1 bg-green-600 px-2 py-1 text-[10px] text-white"
+                  >
+                    <Save className="h-3 w-3" /> Save
+                  </button>
+                ) : (
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    #{index + 1}
+                  </span>
+                )}
+                <div className="flex items-center gap-1">
+                  {slot.multi && (
+                    <>
+                      <button
+                        onClick={() => handleMove(index, -1)}
+                        disabled={index === 0}
+                        className="border border-border p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        aria-label="Move earlier"
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => handleMove(index, 1)}
+                        disabled={index === slotRows.length - 1}
+                        className="border border-border p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        aria-label="Move later"
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => handleRemove(row)}
+                    className="bg-red-600 p-1 text-white"
+                    aria-label="Remove image"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

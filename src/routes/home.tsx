@@ -17,8 +17,12 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
+import { useSiteImage, useSiteImageList } from "@/lib/site-images-context";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Promotion = Tables<"promotions">;
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
 import ghCoupleRoom from "@/assets/gh-couple-room.jpg";
@@ -64,21 +68,35 @@ const amenities = [
 
 function HomePage() {
   const { activeHouse, houseName, whatsappNumber, phoneNumber, address } = useGuestHouse();
-  const heroImage = activeHouse === "greater-heights" ? ghExterior : nhExterior1;
-  const welcomeImages = [ghCoupleRoom, nhCoupleRoom];
-  const diningImage = activeHouse === "greater-heights" ? ghOutdoorDining : nhDining2;
+  const heroImage = useSiteImage(
+    `${activeHouse}.home.hero`,
+    activeHouse === "greater-heights" ? ghExterior : nhExterior1,
+  );
+  const welcomeImages = useSiteImageList(`${activeHouse}.home.welcome`, [
+    ghCoupleRoom,
+    nhCoupleRoom,
+  ]);
+  const diningImage = useSiteImage(
+    `${activeHouse}.home.dining_cta`,
+    activeHouse === "greater-heights" ? ghOutdoorDining : nhDining2,
+  );
 
-  const [promotions, setPromotions] = useState<any[]>([]);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
     supabase
       .from("promotions")
       .select("*")
       .eq("guest_house", activeHouse)
       .eq("is_active", true)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (cancelled || error) return;
         setPromotions(data || []);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [activeHouse]);
 
   const isGreaterHeights = activeHouse === "greater-heights";
@@ -127,18 +145,18 @@ function HomePage() {
             </div>
           </motion.div>
         </div>
-{/* Back to Properties */}
-      <div className="bg-charcoal/95 border-b border-gold/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            All Properties
-          </Link>
+        {/* Back to Properties */}
+        <div className="bg-charcoal/95 border-b border-gold/10">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              All Properties
+            </Link>
+          </div>
         </div>
-      </div>
       </section>
 
       {/* Promotions Banner */}
@@ -148,16 +166,26 @@ function HomePage() {
             <div className="flex items-center gap-3 justify-center flex-wrap">
               <Tag className="h-5 w-5 text-warm-white" />
               {promotions.map((promo) => (
-                <div key={promo.id} className="text-center">
-                  <span className="text-warm-white font-heading text-lg">{promo.title}</span>
-                  {promo.discount_percentage > 0 && (
-                    <span className="ml-2 bg-warm-white text-gold-dark px-2 py-0.5 text-xs font-bold">
-                      {promo.discount_percentage}% OFF
-                    </span>
+                <div key={promo.id} className="flex items-center gap-3 text-center">
+                  {promo.image_url && (
+                    <img
+                      src={promo.image_url}
+                      alt={promo.title}
+                      loading="lazy"
+                      className="h-12 w-12 rounded border border-warm-white/40 object-cover"
+                    />
                   )}
-                  {promo.description && (
-                    <p className="text-warm-white/80 text-xs mt-1">{promo.description}</p>
-                  )}
+                  <div className="text-center">
+                    <span className="text-warm-white font-heading text-lg">{promo.title}</span>
+                    {(promo.discount_percentage ?? 0) > 0 && (
+                      <span className="ml-2 bg-warm-white text-gold-dark px-2 py-0.5 text-xs font-bold">
+                        {promo.discount_percentage}% OFF
+                      </span>
+                    )}
+                    {promo.description && (
+                      <p className="text-warm-white/80 text-xs mt-1">{promo.description}</p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -198,18 +226,15 @@ function HomePage() {
                 viewport={{ once: true }}
                 className="grid grid-cols-2 gap-3"
               >
-                <img
-                  src={welcomeImages[0]}
-                  alt="Room"
-                  loading="lazy"
-                  className="w-full h-48 object-cover"
-                />
-                <img
-                  src={welcomeImages[1]}
-                  alt="Suite"
-                  loading="lazy"
-                  className="w-full h-48 object-cover mt-6"
-                />
+                {welcomeImages.map((src, i) => (
+                  <img
+                    key={`${src}-${i}`}
+                    src={src}
+                    alt={`Greater Heights atmosphere ${i + 1}`}
+                    loading="lazy"
+                    className={`w-full h-48 object-cover ${i % 2 === 1 ? "mt-6" : ""}`}
+                  />
+                ))}
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
@@ -243,18 +268,15 @@ function HomePage() {
                 viewport={{ once: true }}
                 className="grid grid-cols-2 gap-3"
               >
-                <img
-                  src={welcomeImages[0]}
-                  alt="Room"
-                  loading="lazy"
-                  className="w-full h-48 object-cover"
-                />
-                <img
-                  src={welcomeImages[1]}
-                  alt="Suite"
-                  loading="lazy"
-                  className="w-full h-48 object-cover mt-6"
-                />
+                {welcomeImages.map((src, i) => (
+                  <img
+                    key={`${src}-${i}`}
+                    src={src}
+                    alt={`${houseName} room ${i + 1}`}
+                    loading="lazy"
+                    className={`w-full h-48 object-cover ${i % 2 === 1 ? "mt-6" : ""}`}
+                  />
+                ))}
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
@@ -426,9 +448,10 @@ function HomePage() {
               <div className="h-80 bg-cream-dark border border-border overflow-hidden">
                 <iframe
                   title={`${houseName} Location`}
-                  src={activeHouse === "greater-heights"
-                    ? "https://www.google.com/maps?q=29.3271667,27.4882778&z=15&output=embed"
-                    : "https://www.google.com/maps?q=29.3167,27.4833&z=15&output=embed"
+                  src={
+                    activeHouse === "greater-heights"
+                      ? "https://www.google.com/maps?q=29.3271667,27.4882778&z=15&output=embed"
+                      : "https://www.google.com/maps?q=29.3167,27.4833&z=15&output=embed"
                   }
                   className="w-full h-full border-0"
                   loading="lazy"

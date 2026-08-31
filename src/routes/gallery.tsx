@@ -65,6 +65,7 @@ function GalleryPage() {
     supabase
       .from("gallery_images")
       .select("image_url, alt_text, category, guest_house")
+      .eq("guest_house", activeHouse)
       .order("display_order")
       .then(({ data, error }) => {
         if (ignore) return;
@@ -85,7 +86,7 @@ function GalleryPage() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [activeHouse]);
 
   const fallbackImages = [...greaterHeightsImages, ...newHeightsImages];
   const images = uploadedImages.length > 0 ? uploadedImages : fallbackImages;
@@ -97,7 +98,7 @@ function GalleryPage() {
 
   return (
     <>
-{/* Back to Properties */}
+      {/* Back to Properties */}
       <div className="bg-charcoal/95 border-b border-gold/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link
@@ -139,7 +140,7 @@ function GalleryPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {filtered.map((img, i) => (
               <motion.button
-                key={img.alt}
+                key={`${img.src}-${i}`}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.05 }}

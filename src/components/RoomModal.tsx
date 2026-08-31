@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -49,6 +50,15 @@ export function RoomModal({ isOpen, onClose, room, activeHouse }: RoomModalProps
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + roomImages.length) % roomImages.length);
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
 
   return (
     <AnimatePresence>
@@ -173,9 +183,9 @@ export function RoomModal({ isOpen, onClose, room, activeHouse }: RoomModalProps
 
               {/* Action buttons */}
               <div className="flex gap-3 pt-4 border-t border-border">
-                <a href="/booking" className="btn-gold text-xs px-6 py-3">
+                <Link to="/booking" className="btn-gold text-xs px-6 py-3">
                   Book This Room
-                </a>
+                </Link>
                 <button onClick={onClose} className="btn-gold-outline text-xs px-6 py-3">
                   Close
                 </button>

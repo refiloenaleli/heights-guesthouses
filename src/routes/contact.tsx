@@ -40,13 +40,13 @@ function ContactPage() {
     setTimeout(() => setSubmitted(false), 6000);
   };
 
-  const whatsappLink = `https://wa.me/${whatsappNumber.replace(/\+/g, "")}?text=${encodeURIComponent(
+  const whatsappLink = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
     `Hello, I would like to inquire about ${houseName}.`,
   )}`;
 
   return (
     <>
-{/* Back to Properties */}
+      {/* Back to Properties */}
       <div className="bg-charcoal/95 border-b border-gold/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link
@@ -114,9 +114,10 @@ function ContactPage() {
               <div className="mt-8 h-48 bg-cream-dark border border-border overflow-hidden">
                 <iframe
                   title={`${houseName} Location`}
-                  src={activeHouse === "greater-heights"
-                    ? "https://www.google.com/maps?q=29.3271667,27.4882778&z=15&output=embed"
-                    : "https://www.google.com/maps?q=29.3167,27.4833&z=15&output=embed"
+                  src={
+                    activeHouse === "greater-heights"
+                      ? "https://www.google.com/maps?q=29.3271667,27.4882778&z=15&output=embed"
+                      : "https://www.google.com/maps?q=29.3167,27.4833&z=15&output=embed"
                   }
                   className="w-full h-full border-0"
                   loading="lazy"
@@ -141,28 +142,32 @@ function ContactPage() {
                 </div>
               ) : (
                 <>
-                {(["name", "email", "subject"] as const).map((field) => (
-                <input
-                  key={field}
-                  type={field === "email" ? "email" : "text"}
-                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                  required
-                  value={formData[field]}
-                  onChange={(e) => setFormData((p) => ({ ...p, [field]: e.target.value }))}
-                  className="w-full border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold-dark"
-                />
-              ))}
-              <textarea
-                placeholder="Your Message"
-                required
-                rows={5}
-                value={formData.message}
-                onChange={(e) => setFormData((p) => ({ ...p, message: e.target.value }))}
-                className="w-full border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold-dark resize-none"
-              />
-              <button type="submit" disabled={submitting} className="btn-gold w-full disabled:opacity-50">
-                {submitting ? "Sending..." : "Send Message"}
-              </button>
+                  {(["name", "email", "subject"] as const).map((field) => (
+                    <input
+                      key={field}
+                      type={field === "email" ? "email" : "text"}
+                      placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                      required
+                      value={formData[field]}
+                      onChange={(e) => setFormData((p) => ({ ...p, [field]: e.target.value }))}
+                      className="w-full border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold-dark"
+                    />
+                  ))}
+                  <textarea
+                    placeholder="Your Message"
+                    required
+                    rows={5}
+                    value={formData.message}
+                    onChange={(e) => setFormData((p) => ({ ...p, message: e.target.value }))}
+                    className="w-full border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-gold-dark resize-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="btn-gold w-full disabled:opacity-50"
+                  >
+                    {submitting ? "Sending..." : "Send Message"}
+                  </button>
                 </>
               )}
             </motion.form>

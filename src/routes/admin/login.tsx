@@ -16,36 +16,7 @@ function AdminLoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let cancelled = false;
-
-    const checkAdmin = async (userId: string) => {
-      try {
-        const { data } = await supabase.rpc("has_role", {
-          _user_id: userId,
-          _role: "admin",
-        });
-        if (!cancelled && data) {
-          navigate({ to: "/admin/dashboard" });
-        }
-      } catch {
-        // Never crash the page on an auth probe failure — user can still sign in manually.
-      }
-    };
-
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        if (!cancelled && session) {
-          checkAdmin(session.user.id);
-        }
-      })
-      .catch(() => {
-        // Ignore — the sign-in form still works even if the session probe fails.
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    navigate({ to: "/admin/dashboard" });
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {

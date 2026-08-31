@@ -25,6 +25,17 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
+import ghExterior from "@/assets/gh-exterior.jpg";
+import nhExterior1 from "@/assets/nh-exterior1.jpg";
+import ghLogo from "@/assets/gh-logo.jpg";
+import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
+import ghCoupleRoom from "@/assets/gh-couple-room.jpg";
+import nhCoupleRoom from "@/assets/nh-couple-room.jpg";
+import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
+import nhDining2 from "@/assets/nh-dining2.jpg";
+import ghDining from "@/assets/gh-dining.jpg";
+import nhDining1 from "@/assets/nh-dining1.jpg";
+import diningInterior from "@/assets/dining.jpg";
 
 type Booking = Tables<"bookings">;
 type Review = Tables<"reviews">;
@@ -1692,6 +1703,49 @@ const HOUSE_SITE_IMAGE_SLOTS: SiteImageSlot[] = [
 
 const SITE_IMAGES_BUCKET = "site_images";
 
+function getDefaultSiteImageForSlot(slotKey: string): string {
+  switch (slotKey) {
+    case "landing.hero":
+      return ghExterior;
+    case "landing.card.greater-heights":
+      return ghExterior;
+    case "landing.card.new-heights":
+      return nhExterior1;
+    case "logo.greater-heights":
+      return ghLogo;
+    case "logo.new-heights":
+      return nhLogo;
+    case "greater-heights.home.hero":
+    case "greater-heights.about.hero":
+      return ghExterior;
+    case "new-heights.home.hero":
+    case "new-heights.about.hero":
+      return nhExterior1;
+    case "greater-heights.home.welcome":
+      return ghCoupleRoom;
+    case "new-heights.home.welcome":
+      return nhCoupleRoom;
+    case "greater-heights.home.dining_cta":
+      return ghOutdoorDining;
+    case "new-heights.home.dining_cta":
+      return nhDining2;
+    case "greater-heights.dining.hero":
+      return ghOutdoorDining;
+    case "new-heights.dining.hero":
+      return nhDining2;
+    case "greater-heights.dining.interior":
+      return diningInterior;
+    case "new-heights.dining.interior":
+      return diningInterior;
+    case "greater-heights.dining.meals":
+      return ghDining;
+    case "new-heights.dining.meals":
+      return nhDining1;
+    default:
+      return ghExterior;
+  }
+}
+
 function siteImagePathFromUrl(url: string): string | null {
   const marker = `/object/public/${SITE_IMAGES_BUCKET}/`;
   const idx = url.indexOf(marker);
@@ -1801,6 +1855,7 @@ function SiteImageSlotEditor({
   const slotRows = rows
     .filter((r) => r.slot_key === slotKey)
     .sort((a, b) => a.display_order - b.display_order);
+  const activeImageUrl = slotRows[0]?.image_url || getDefaultSiteImageForSlot(slotKey);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1920,9 +1975,26 @@ function SiteImageSlotEditor({
         </label>
       </div>
 
+      <div className="mb-3 rounded border border-dashed border-border bg-card/40 p-3">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Current live image
+          </p>
+          {slotRows.length > 0 && (
+            <span className="rounded bg-amber-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-amber-900">
+              override active
+            </span>
+          )}
+        </div>
+        <div className="overflow-hidden rounded border border-border bg-charcoal/5">
+          <img src={activeImageUrl} alt={slot.label} className="h-28 w-full object-cover" />
+        </div>
+      </div>
+
       {slotRows.length === 0 ? (
         <p className="text-xs italic text-muted-foreground">
-          No custom image yet — the website is using its built-in photo for this slot.
+          No custom image yet — the website is using its built-in photo for this slot. Upload a new
+          image to override it.
         </p>
       ) : (
         <div

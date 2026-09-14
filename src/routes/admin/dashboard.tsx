@@ -74,8 +74,38 @@ function AdminDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setIsAdmin(true);
-  }, []);
+    let cancelled = false;
+    async function checkAdmin() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (!sessionData.session) {
+        navigate({ to: "/admin/login" });
+        return;
+      }
+      // Require the admin role so RLS lets the dashboard write to the database
+      // and storage. Without this the image uploads/saves are silently blocked.
+      try {
+        const { data: isAdmin } = await supabase.rpc("has_role", {
+          _user_id: sessionData.session.user.id,
+          _role: "admin",
+        });
+        if (cancelled) return;
+        if (!isAdmin) {
+          navigate({ to: "/admin/login" });
+          return;
+        }
+        setIsAdmin(true);
+      } catch {
+        if (cancelled) return;
+        navigate({ to: "/admin/login" });
+      }
+    }
+    checkAdmin();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

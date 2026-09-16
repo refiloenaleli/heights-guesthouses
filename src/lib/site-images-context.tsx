@@ -41,7 +41,12 @@ let warnedInvalidUrls = false;
 function isAllowedSiteImageUrl(url: string | null | undefined): boolean {
   if (!url) return false;
 
-  if (url.startsWith("/") || url.startsWith("./") || url.startsWith("data:") || url.startsWith("blob:")) {
+  if (
+    url.startsWith("/") ||
+    url.startsWith("./") ||
+    url.startsWith("data:") ||
+    url.startsWith("blob:")
+  ) {
     return true;
   }
 
@@ -81,11 +86,15 @@ export function SiteImagesProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const validRows = ((data as SiteImageRow[]) || []).filter((row) => isAllowedSiteImageUrl(row.image_url));
+        const validRows = ((data as SiteImageRow[]) || []).filter((row) =>
+          isAllowedSiteImageUrl(row.image_url),
+        );
 
         if (!warnedInvalidUrls && validRows.length !== ((data as SiteImageRow[]) || []).length) {
           warnedInvalidUrls = true;
-          console.warn("Ignoring invalid site image URLs that do not match the configured Supabase project.");
+          console.warn(
+            "Ignoring invalid site image URLs that do not match the configured Supabase project.",
+          );
         }
 
         const map: SiteImagesMap = {};

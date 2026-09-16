@@ -1885,7 +1885,8 @@ function SiteImageSlotEditor({
   const slotRows = rows
     .filter((r) => r.slot_key === slotKey)
     .sort((a, b) => a.display_order - b.display_order);
-  const activeImageUrl = slotRows[0]?.image_url || getDefaultSiteImageForSlot(slotKey);
+  const hasOverride = slotRows.length > 0;
+  const activeImageUrl = hasOverride ? slotRows[0].image_url : getDefaultSiteImageForSlot(slotKey);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1953,6 +1954,25 @@ function SiteImageSlotEditor({
     onChange();
   };
 
+  const handleResetToDefault = async () => {
+    if (!slotRows.length) return;
+    if (!window.confirm("Reset this slot to the built-in default image?")) return;
+
+    for (const row of slotRows) {
+      const { error } = await supabase.from("site_images").delete().eq("id", row.id);
+      if (error) {
+        alert("Could not reset image: " + error.message);
+        return;
+      }
+      const path = siteImagePathFromUrl(row.image_url);
+      if (path) {
+        await supabase.storage.from(SITE_IMAGES_BUCKET).remove([path]);
+      }
+    }
+
+    onChange();
+  };
+
   const handleMove = async (index: number, dir: -1 | 1) => {
     const swapIndex = index + dir;
     if (swapIndex < 0 || swapIndex >= slotRows.length) return;
@@ -2010,11 +2030,13 @@ function SiteImageSlotEditor({
           <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Current live image
           </p>
-          {slotRows.length > 0 && (
-            <span className="rounded bg-amber-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-amber-900">
-              override active
-            </span>
-          )}
+          <span
+            className={`rounded px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider ${
+              hasOverride ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-800"
+            }`}
+          >
+            {hasOverride ? "override active" : "default asset"}
+          </span>
         </div>
         <div className="overflow-hidden rounded border border-border bg-charcoal/5">
           <img src={activeImageUrl} alt={slot.label} className="h-28 w-full object-cover" />
@@ -2022,10 +2044,12 @@ function SiteImageSlotEditor({
       </div>
 
       {slotRows.length === 0 ? (
-        <p className="text-xs italic text-muted-foreground">
-          No custom image yet — the website is using its built-in photo for this slot. Upload a new
-          image to override it.
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="text-xs italic text-muted-foreground">
+            No custom image yet — the website is using its built-in photo for this slot. Upload a
+            new image to override it.
+          </p>
+        </div>
       ) : (
         <div
           className={`grid gap-4 ${slot.multi ? "md:grid-cols-2 xl:grid-cols-3" : "sm:flex sm:items-center"}`}
@@ -2080,6 +2104,13 @@ function SiteImageSlotEditor({
                       </button>
                     </>
                   )}
+                  <button
+                    onClick={handleResetToDefault}
+                    className="border border-border bg-muted px-2 py-1 text-[10px] uppercase tracking-wide text-foreground"
+                    aria-label="Reset to default image"
+                  >
+                    Default
+                  </button>
                   <button
                     onClick={() => handleRemove(row)}
                     className="bg-red-600 p-1 text-white"

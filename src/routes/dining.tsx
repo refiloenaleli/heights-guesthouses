@@ -271,62 +271,6 @@ function DiningPage() {
             <h2 className="section-title mt-2">Start the day at the table.</h2>
           </div>
 
-          {menuImages.length > 0 && (
-            <div className="mb-16 border-y border-border py-10">
-              <div className="mb-8 flex items-end justify-between gap-4">
-                <div>
-                  <span className="section-label">MENUS TO EXPLORE</span>
-                  <h2 className="section-title mt-2">Choose something delicious.</h2>
-                </div>
-                <p className="max-w-xs text-right text-xs leading-relaxed text-muted-foreground">
-                  View each menu full-size or download it to keep for later.
-                </p>
-              </div>
-              <div className="grid gap-5 md:grid-cols-3">
-                {menuImages.slice(0, 3).map((menu) => (
-                  <article key={menu.id} className="overflow-hidden border border-border bg-card">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMenu(menu)}
-                      className="block w-full text-left"
-                    >
-                      <img
-                        src={menu.image_url}
-                        alt={menu.title}
-                        className="h-52 w-full object-cover"
-                      />
-                    </button>
-                    <div className="flex items-center justify-between gap-3 p-4">
-                      <div>
-                        <h3 className="font-heading text-lg text-foreground">{menu.title}</h3>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {menu.caption || "Explore our menu"}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedMenu(menu)}
-                          className="btn-gold-outline px-3 py-2 text-[10px]"
-                        >
-                          View
-                        </button>
-                        <a
-                          href={menu.image_url}
-                          download={menu.title || "menu"}
-                          className="btn-gold p-2"
-                          aria-label={`Download ${menu.title}`}
-                        >
-                          <Download className="h-4 w-4" />
-                        </a>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          )}
-
           <p className="text-center text-sm text-muted-foreground mb-12 max-w-lg mx-auto">
             Savour gourmet dishes and refreshing cocktails at {houseName}'s elegant restaurant and
             bar.
@@ -390,6 +334,65 @@ function DiningPage() {
           </div>
         </div>
       </section>
+
+      {/* Menu Images — shown large at the bottom of the dining page */}
+      {menuImages.length > 0 && (
+        <section className="py-20 bg-background">
+          <div className="mx-auto max-w-6xl px-4">
+            <div className="text-center mb-10">
+              <span className="section-label">MENUS TO EXPLORE</span>
+              <h2 className="section-title mt-2">Choose something delicious.</h2>
+              <p className="mt-4 max-w-xl mx-auto text-sm leading-relaxed text-muted-foreground">
+                View each menu full-size or download it to keep for later.
+              </p>
+            </div>
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {menuImages.map((menu) => (
+                <article key={menu.id} className="overflow-hidden border border-border bg-card">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMenu(menu)}
+                    className="block w-full text-left"
+                  >
+                    <img
+                      src={menu.image_url}
+                      alt={menu.title}
+                      className="h-72 w-full object-contain bg-charcoal/5"
+                    />
+                  </button>
+                  <div className="flex items-center justify-between gap-3 p-5">
+                    <div>
+                      <h3 className="font-heading text-xl font-bold text-foreground">
+                        {menu.title}
+                      </h3>
+                      <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                        {menu.caption || "Explore our menu"}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMenu(menu)}
+                        className="btn-gold-outline px-4 py-2.5 text-xs"
+                      >
+                        View
+                      </button>
+                      <a
+                        href={menu.image_url}
+                        download={menu.title || "menu"}
+                        className="btn-gold p-2"
+                        aria-label={`Download ${menu.title}`}
+                      >
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <p className="font-accent bg-cream px-4 py-16 text-center text-2xl text-gold-dark">
         Come hungry. Leave with another reason to return.

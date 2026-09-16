@@ -133,70 +133,118 @@ function AdminDashboard() {
     { key: "site-images", label: "Site Images", icon: Image },
   ];
 
+  const selectedHouseLabel =
+    selectedHouse === "greater-heights" ? "Greater Heights" : "New Heights";
+  const activeTabLabel = tabs.find((tab) => tab.key === activeTab)?.label || "Dashboard";
+
   return (
-    <div className="min-h-screen bg-background -mt-[88px] pt-[88px]">
-      <div className="bg-charcoal border-b border-gold/20">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Settings className="h-5 w-5 text-gold" />
-            <h1 className="font-heading text-xl text-warm-white">Admin Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <select
-              value={selectedHouse}
-              onChange={(e) =>
-                setSelectedHouse(e.target.value as "greater-heights" | "new-heights")
-              }
-              className="bg-charcoal-light border border-gold/20 text-warm-white text-xs px-3 py-2 focus:outline-none focus:border-gold-dark"
-            >
-              <option value="greater-heights">Greater Heights</option>
-              <option value="new-heights">New Heights</option>
-            </select>
-            <Link
-              to="/home"
-              className="text-xs text-gold-light/60 hover:text-gold-light flex items-center gap-1"
-            >
-              <Home className="h-3 w-3" /> Site
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1 text-xs text-warm-white/60 hover:text-warm-white"
-            >
-              <LogOut className="h-3 w-3" /> Logout
-            </button>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(183,144,82,0.12),_transparent_35%),var(--color-background)] -mt-[88px] pt-[88px]">
+      <div className="mx-auto max-w-7xl px-4 py-6">
+        <header className="rounded-[28px] border border-border/80 bg-charcoal text-warm-white shadow-[0_24px_70px_rgba(17,17,17,0.18)]">
+          <div className="flex flex-col gap-4 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/15 text-gold-light ring-1 ring-gold/25">
+                <Settings className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.26em] text-gold-light/80">
+                  Control centre
+                </p>
+                <h1 className="font-heading text-2xl text-warm-white">Admin Dashboard</h1>
+              </div>
+            </div>
 
-      <div className="bg-cream border-b border-border overflow-x-auto">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex gap-0">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-3 text-xs tracking-widest uppercase border-b-2 transition-all whitespace-nowrap ${activeTab === tab.key ? "border-gold-dark text-gold-dark font-semibold" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 rounded-full border border-gold/25 bg-charcoal-light/80 px-3 py-2 text-xs text-warm-white/80">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-gold-light/75">
+                  Property
+                </span>
+                <select
+                  value={selectedHouse}
+                  onChange={(e) =>
+                    setSelectedHouse(e.target.value as "greater-heights" | "new-heights")
+                  }
+                  className="bg-transparent pr-2 font-medium text-warm-white outline-none"
+                >
+                  <option value="greater-heights" className="text-charcoal">
+                    Greater Heights
+                  </option>
+                  <option value="new-heights" className="text-charcoal">
+                    New Heights
+                  </option>
+                </select>
+              </label>
+
+              <Link
+                to="/home"
+                className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-gold/10 px-3 py-2 text-xs font-medium text-gold-light transition hover:bg-gold/15"
               >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
+                <Home className="h-3 w-3" /> View site
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-full border border-warm-white/15 bg-warm-white/5 px-3 py-2 text-xs font-medium text-warm-white/75 transition hover:bg-warm-white/10 hover:text-warm-white"
+              >
+                <LogOut className="h-3 w-3" /> Logout
               </button>
-            ))}
+            </div>
+          </div>
+        </header>
+
+        <div className="mt-6 rounded-[24px] border border-border/80 bg-card/80 p-2 shadow-[0_18px_40px_rgba(30,30,30,0.06)] backdrop-blur-sm">
+          <div className="overflow-x-auto">
+            <div className="flex min-w-max gap-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.key;
+
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition-all whitespace-nowrap ${
+                      isActive
+                        ? "border-gold/40 bg-gold-dark text-warm-white shadow-md shadow-gold/15"
+                        : "border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        {activeTab === "bookings" && <BookingsPanel house={selectedHouse} />}
-        {activeTab === "reviews" && <ReviewsPanel house={selectedHouse} />}
-        {activeTab === "gallery" && <GalleryPanel house={selectedHouse} />}
-        {activeTab === "contacts" && <ContactsPanel house={selectedHouse} />}
-        {activeTab === "promotions" && <PromotionsPanel house={selectedHouse} />}
-        {activeTab === "menus" && <MenusPanel house={selectedHouse} />}
-        {activeTab === "prices" && <PricesPanel house={selectedHouse} />}
-        {activeTab === "room-images" && <RoomImagesPanel house={selectedHouse} />}
-        {activeTab === "dining-banners" && <DiningBannersPanel house={selectedHouse} />}
-        {activeTab === "menu-images" && <MenuImagesPanel house={selectedHouse} />}
-        {activeTab === "site-images" && <SiteImagesPanel house={selectedHouse} />}
+        <div className="mt-6 rounded-[28px] border border-border/80 bg-card shadow-[0_24px_70px_rgba(26,26,26,0.07)]">
+          <div className="flex flex-col gap-3 border-b border-border px-5 py-5 md:flex-row md:items-center md:justify-between md:px-6">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                Active section
+              </p>
+              <h2 className="mt-1 font-heading text-2xl text-foreground">{activeTabLabel}</h2>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-gold/15 bg-gold/8 px-3 py-2 text-xs font-medium text-gold-dark">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              {selectedHouseLabel}
+            </div>
+          </div>
+
+          <div className="p-5 md:p-6">
+            {activeTab === "bookings" && <BookingsPanel house={selectedHouse} />}
+            {activeTab === "reviews" && <ReviewsPanel house={selectedHouse} />}
+            {activeTab === "gallery" && <GalleryPanel house={selectedHouse} />}
+            {activeTab === "contacts" && <ContactsPanel house={selectedHouse} />}
+            {activeTab === "promotions" && <PromotionsPanel house={selectedHouse} />}
+            {activeTab === "menus" && <MenusPanel house={selectedHouse} />}
+            {activeTab === "prices" && <PricesPanel house={selectedHouse} />}
+            {activeTab === "room-images" && <RoomImagesPanel house={selectedHouse} />}
+            {activeTab === "dining-banners" && <DiningBannersPanel house={selectedHouse} />}
+            {activeTab === "menu-images" && <MenuImagesPanel house={selectedHouse} />}
+            {activeTab === "site-images" && <SiteImagesPanel house={selectedHouse} />}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1824,45 +1872,49 @@ function SiteImagesPanel({ house }: { house: string }) {
   const houseName = house === "greater-heights" ? "Greater Heights" : "New Heights";
 
   return (
-    <div>
-      <h2 className="text-lg font-semibold text-foreground mb-2">Site Images</h2>
-      <div className="mb-8 border border-gold/30 bg-gold/5 p-4">
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          These are all of the images that appear across the public website. Upload a photo to
-          override the built-in default, edit its description, reorder gallery photos, or remove an
-          override to restore the original. Gallery-style slots accept any number of images — use
-          "Add Image" to extend them.
+    <div className="space-y-8">
+      <div className="rounded-3xl border border-gold/20 bg-gradient-to-r from-gold/8 to-transparent p-5">
+        <h2 className="font-heading text-2xl text-foreground">Site Images</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+          These are the live image slots used across the public website. Upload a replacement, edit
+          the alt text, reorder gallery photos, or reset any slot back to its default asset.
         </p>
       </div>
 
-      <h3 className="mb-3 border-b border-border pb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        Shared across the whole website
-      </h3>
-      <div className="space-y-4">
-        {SHARED_SITE_IMAGE_SLOTS.map((slot) => (
-          <SiteImageSlotEditor
-            key={slot.key}
-            slot={slot}
-            slotKey={slot.key}
-            rows={rows}
-            onChange={reload}
-          />
-        ))}
-      </div>
+      <div className="space-y-6">
+        <div>
+          <h3 className="mb-3 border-b border-border pb-2 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            Shared across the whole website
+          </h3>
+          <div className="space-y-4">
+            {SHARED_SITE_IMAGE_SLOTS.map((slot) => (
+              <SiteImageSlotEditor
+                key={slot.key}
+                slot={slot}
+                slotKey={slot.key}
+                rows={rows}
+                onChange={reload}
+              />
+            ))}
+          </div>
+        </div>
 
-      <h3 className="mt-10 mb-3 border-b border-border pb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        {houseName} pages
-      </h3>
-      <div className="space-y-4">
-        {HOUSE_SITE_IMAGE_SLOTS.map((slot) => (
-          <SiteImageSlotEditor
-            key={`${house}-${slot.key}`}
-            slot={slot}
-            slotKey={slot.key.replace("{house}", house)}
-            rows={rows}
-            onChange={reload}
-          />
-        ))}
+        <div>
+          <h3 className="mb-3 border-b border-border pb-2 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            {houseName} pages
+          </h3>
+          <div className="space-y-4">
+            {HOUSE_SITE_IMAGE_SLOTS.map((slot) => (
+              <SiteImageSlotEditor
+                key={`${house}-${slot.key}`}
+                slot={slot}
+                slotKey={slot.key.replace("{house}", house)}
+                rows={rows}
+                onChange={reload}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1994,16 +2046,16 @@ function SiteImageSlotEditor({
   };
 
   return (
-    <div className="bg-cream border border-border p-5">
-      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+    <div className="rounded-[26px] border border-border bg-cream/60 p-4 shadow-[0_18px_35px_rgba(31,31,31,0.04)] md:p-5">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h4 className="text-sm font-semibold text-foreground">{slot.label}</h4>
+          <h4 className="font-heading text-lg text-foreground">{slot.label}</h4>
           {slot.description && (
-            <p className="mt-0.5 text-xs text-muted-foreground">{slot.description}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{slot.description}</p>
           )}
         </div>
         <label
-          className={`btn-gold inline-flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[10px] ${
+          className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-gold-dark px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-warm-white shadow-sm transition hover:bg-gold ${
             uploading ? "pointer-events-none opacity-50" : ""
           }`}
         >
@@ -2025,26 +2077,26 @@ function SiteImageSlotEditor({
         </label>
       </div>
 
-      <div className="mb-3 rounded border border-dashed border-border bg-card/40 p-3">
+      <div className="mb-4 rounded-2xl border border-dashed border-gold/25 bg-card/80 p-3">
         <div className="mb-2 flex items-center justify-between gap-3">
           <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Current live image
           </p>
           <span
-            className={`rounded px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider ${
+            className={`rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] ${
               hasOverride ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-800"
             }`}
           >
             {hasOverride ? "override active" : "default asset"}
           </span>
         </div>
-        <div className="overflow-hidden rounded border border-border bg-charcoal/5">
+        <div className="overflow-hidden rounded-2xl border border-border bg-charcoal/5">
           <img src={activeImageUrl} alt={slot.label} className="h-28 w-full object-cover" />
         </div>
       </div>
 
       {slotRows.length === 0 ? (
-        <div className="flex flex-col gap-2">
+        <div className="rounded-2xl border border-dashed border-border bg-background/50 p-3">
           <p className="text-xs italic text-muted-foreground">
             No custom image yet — the website is using its built-in photo for this slot. Upload a
             new image to override it.
@@ -2055,8 +2107,8 @@ function SiteImageSlotEditor({
           className={`grid gap-4 ${slot.multi ? "md:grid-cols-2 xl:grid-cols-3" : "sm:flex sm:items-center"}`}
         >
           {slotRows.map((row, index) => (
-            <div key={row.id} className="border border-border bg-card p-3">
-              <div className="relative mb-2 overflow-hidden bg-charcoal/5">
+            <div key={row.id} className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+              <div className="relative mb-2 overflow-hidden rounded-xl bg-charcoal/5">
                 <img
                   src={row.image_url}
                   alt={row.alt_text || slot.label}
@@ -2068,28 +2120,28 @@ function SiteImageSlotEditor({
                 placeholder="Description (alt text)"
                 value={altDrafts[row.id] ?? row.alt_text}
                 onChange={(e) => setAltDrafts((p) => ({ ...p, [row.id]: e.target.value }))}
-                className="mb-2 w-full border border-border bg-background px-2.5 py-1.5 text-xs focus:border-gold-dark focus:outline-none"
+                className="mb-2 w-full rounded-xl border border-border bg-background px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-gold-dark focus:outline-none"
               />
               <div className="flex items-center justify-between gap-2">
                 {altDrafts[row.id] !== undefined && altDrafts[row.id] !== row.alt_text ? (
                   <button
                     onClick={() => handleSaveAlt(row)}
-                    className="inline-flex items-center gap-1 bg-green-600 px-2 py-1 text-[10px] text-white"
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1.5 text-[10px] font-medium text-white transition hover:bg-emerald-500"
                   >
                     <Save className="h-3 w-3" /> Save
                   </button>
                 ) : (
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                     #{index + 1}
                   </span>
                 )}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   {slot.multi && (
                     <>
                       <button
                         onClick={() => handleMove(index, -1)}
                         disabled={index === 0}
-                        className="border border-border p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        className="rounded-lg border border-border p-1.5 text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
                         aria-label="Move earlier"
                       >
                         <ChevronUp className="h-3 w-3" />
@@ -2097,7 +2149,7 @@ function SiteImageSlotEditor({
                       <button
                         onClick={() => handleMove(index, 1)}
                         disabled={index === slotRows.length - 1}
-                        className="border border-border p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        className="rounded-lg border border-border p-1.5 text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
                         aria-label="Move later"
                       >
                         <ChevronDown className="h-3 w-3" />
@@ -2106,14 +2158,14 @@ function SiteImageSlotEditor({
                   )}
                   <button
                     onClick={handleResetToDefault}
-                    className="border border-border bg-muted px-2 py-1 text-[10px] uppercase tracking-wide text-foreground"
+                    className="rounded-lg border border-border bg-muted px-2 py-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-foreground transition hover:bg-accent"
                     aria-label="Reset to default image"
                   >
                     Default
                   </button>
                   <button
                     onClick={() => handleRemove(row)}
-                    className="bg-red-600 p-1 text-white"
+                    className="rounded-lg bg-red-600 p-1.5 text-white transition hover:bg-red-500"
                     aria-label="Remove image"
                   >
                     <Trash2 className="h-3 w-3" />

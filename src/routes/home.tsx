@@ -15,9 +15,12 @@ import {
   Sparkles,
   ChefHat,
   ArrowLeft,
+  BedDouble,
+  Building2,
 } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
-import { useSiteImage, useSiteImageList } from "@/lib/site-images-context";
+import { useSiteImage, useSiteImageSet } from "@/lib/site-images-context";
+import { PropertyMap } from "@/components/PropertyMap";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -26,9 +29,13 @@ type Promotion = Tables<"promotions">;
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
 import ghCoupleRoom from "@/assets/gh-couple-room.jpg";
+import ghSharingRoom from "@/assets/gh-sharing-room.jpg";
 import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
 import nhCoupleRoom from "@/assets/nh-couple-room.jpg";
+import nhSharingRoom from "@/assets/nh-sharing-room.jpg";
 import nhDining2 from "@/assets/nh-dining2.jpg";
+import ghLogo from "@/assets/gh-logo.jpg";
+import nhLogo from "@/assets/nh-logo-transparent.png";
 
 export const Route = createFileRoute("/home")({
   component: HomePage,
@@ -57,25 +64,28 @@ const features = [
   },
 ];
 
-const amenities = [
-  { icon: Wifi, title: "High Speed WiFi" },
-  { icon: Car, title: "Free Parking" },
-  { icon: UtensilsCrossed, title: "Restaurant" },
-  { icon: Coffee, title: "Room Service" },
-  { icon: Shield, title: "24/7 Security" },
-  { icon: Users, title: "Conference Rooms" },
-];
-
 function HomePage() {
   const { activeHouse, houseName, whatsappNumber, phoneNumber, address } = useGuestHouse();
+  const heroLogo = useSiteImage(
+    `logo.${activeHouse}`,
+    activeHouse === "greater-heights" ? ghLogo : nhLogo,
+  );
   const heroImage = useSiteImage(
     `${activeHouse}.home.hero`,
     activeHouse === "greater-heights" ? ghExterior : nhExterior1,
   );
-  const welcomeImages = useSiteImageList(`${activeHouse}.home.welcome`, [
-    ghCoupleRoom,
-    nhCoupleRoom,
-  ]);
+  const welcomeFallbacks =
+    activeHouse === "greater-heights"
+      ? [ghCoupleRoom, ghSharingRoom]
+      : [nhCoupleRoom, nhSharingRoom];
+  const welcomeImages = useSiteImageSet(
+    welcomeFallbacks.map((fallback, index) => ({
+      slotKey: `${activeHouse}.home.welcome.${index + 1}`,
+      fallback,
+      legacySlotKey: `${activeHouse}.home.welcome`,
+      legacyIndex: index,
+    })),
+  );
   const diningImage = useSiteImage(
     `${activeHouse}.home.dining_cta`,
     activeHouse === "greater-heights" ? ghOutdoorDining : nhDining2,
@@ -104,41 +114,42 @@ function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative h-[85vh] min-h-[600px] -mt-[60px]">
+      <section className="photo-hero photo-hero-fixed-nav relative h-[85vh] min-h-[600px] -mt-[60px]">
         <img
           src={heroImage}
           alt={houseName}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="photo-hero-image absolute inset-0 h-full w-full object-cover"
           width={1920}
           height={1080}
         />
-        <div className="hero-overlay absolute inset-0" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+        <div className="photo-hero-overlay hero-overlay absolute inset-0" />
+        <div className="photo-hero-content relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
           <motion.div
+            className="home-hero-copy"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="mb-4 flex justify-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-gold text-gold" />
-              ))}
-            </div>
-            <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl text-warm-white font-normal tracking-wide mb-4">
-              {isGreaterHeights ? houseName.toUpperCase() : "More room for what matters."}
+            <img
+              src={heroLogo}
+              alt=""
+              className="property-logo-shadow mx-auto mb-1 h-8 w-8 object-contain sm:mb-5 sm:h-36 sm:w-36 md:h-40 md:w-40"
+            />
+            <h1 className="mb-1 font-heading text-lg font-normal leading-tight tracking-wide text-warm-white sm:mb-4 sm:text-4xl md:text-5xl">
+              {houseName}
             </h1>
-            <p className="max-w-xl mx-auto text-warm-white/80 text-sm md:text-base mb-8 leading-relaxed">
+            <p className="mx-auto mb-2 max-w-xl text-[10px] leading-tight text-warm-white/90 sm:mb-8 sm:text-sm sm:leading-relaxed md:text-base">
               {isGreaterHeights
                 ? "Katlehong, Maseru — Hospitality, warmth, tranquility and delicious food for both leisure and business travellers."
                 : "Comfortable stays, generous spaces and hospitality designed for groups, business and events."}
             </p>
-            <div className="flex gap-3 justify-center">
-              <Link to="/accommodation" className="btn-gold">
+            <div className="flex justify-center gap-2 sm:gap-3">
+              <Link to="/accommodation" className="btn-gold px-3 py-1 text-[9px] sm:px-8 sm:py-3 sm:text-xs">
                 Explore
               </Link>
               <Link
                 to="/booking"
-                className="btn-gold-outline text-warm-white border-warm-white/50 hover:bg-warm-white hover:text-charcoal"
+                className="btn-gold-outline border-warm-white/50 px-3 py-1 text-[9px] text-warm-white hover:bg-warm-white hover:text-charcoal sm:px-8 sm:py-3 sm:text-xs"
               >
                 Book Now
               </Link>
@@ -377,12 +388,39 @@ function HomePage() {
               <span className="section-label">Modern & Comfortable</span>
               <h2 className="section-title mt-2">Facilities & Amenities</h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-              {amenities.map((a) => (
-                <div key={a.title} className="flex items-center gap-3">
-                  <a.icon className="h-6 w-6 text-gold-dark flex-shrink-0" />
-                  <span className="text-sm font-medium text-foreground">{a.title}</span>
-                </div>
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {[
+                {
+                  icon: BedDouble,
+                  title: "Rooms & Capacity",
+                  description:
+                    "15 rooms, each sleeping up to 3 guests sharing, for a maximum capacity of 45 guests. Rooms are equipped to the same standard as Greater Heights: air conditioning, bar fridge, coffee/tea, Wi-Fi, and TV in every room.",
+                },
+                {
+                  icon: ChefHat,
+                  title: "Dining, Kitchen & Spa",
+                  description:
+                    "Its own in-house kitchen, dining facility, and on-site spa — independent of Greater Heights, so guests are catered for on-site regardless of which property they choose.",
+                },
+                {
+                  icon: Building2,
+                  title: "Conference Room",
+                  description:
+                    "One large conference room accommodating up to 300 delegates, reconfigurable to a smaller footprint using a sliding door — the group’s primary venue for large conferences and events.",
+                },
+              ].map(({ icon: Icon, title, description }, index) => (
+                <motion.article
+                  key={title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="h-full border border-border bg-card p-6 sm:p-8"
+                >
+                  <Icon className="mb-5 h-8 w-8 text-gold-dark" />
+                  <h3 className="mb-3 font-heading text-xl text-foreground">{title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+                </motion.article>
               ))}
             </div>
           </div>
@@ -390,15 +428,15 @@ function HomePage() {
       )}
 
       {/* Dining CTA */}
-      <section className="relative h-[50vh] min-h-[400px]">
+      <section className="photo-hero photo-hero-fixed-nav relative h-[50vh] min-h-[400px]">
         <img
           src={diningImage}
           alt="Dining"
           loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="photo-hero-image absolute inset-0 h-full w-full object-cover"
         />
-        <div className="hero-overlay absolute inset-0" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+        <div className="photo-hero-overlay hero-overlay absolute inset-0" />
+        <div className="photo-hero-content relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
           <span className="section-label text-gold-light mb-2">Fine Dining</span>
           <h2 className="font-heading text-3xl md:text-5xl text-warm-white mb-4">
             Explore Our Dining Experience
@@ -409,9 +447,8 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Location (Greater Heights) */}
-      {isGreaterHeights && (
-        <section className="py-20 bg-cream">
+      {/* Property location */}
+      <section className="py-20 bg-cream">
           <div className="mx-auto max-w-6xl px-4">
             <div className="text-center mb-10">
               <span className="section-label">Find Us</span>
@@ -424,7 +461,9 @@ function HomePage() {
                   <p className="text-sm text-foreground">{address}</p>
                 </div>
                 <p className="text-sm text-muted-foreground mb-6">
-                  GPS: 29° 19' 37.8" S, 27° 29' 17.8" E
+                  {isGreaterHeights
+                    ? 'GPS: 29° 19\' 37.8" S, 27° 29\' 17.8" E'
+                    : "Maseru, Lesotho"}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <a
@@ -445,23 +484,10 @@ function HomePage() {
                   </a>
                 </div>
               </div>
-              <div className="h-80 bg-cream-dark border border-border overflow-hidden">
-                <iframe
-                  title={`${houseName} Location`}
-                  src={
-                    activeHouse === "greater-heights"
-                      ? "https://www.google.com/maps?q=29.3271667,27.4882778&z=15&output=embed"
-                      : "https://www.google.com/maps?q=29.3167,27.4833&z=15&output=embed"
-                  }
-                  className="w-full h-full border-0"
-                  loading="lazy"
-                  allowFullScreen
-                />
-              </div>
+              <PropertyMap activeHouse={activeHouse} houseName={houseName} />
             </div>
           </div>
         </section>
-      )}
 
       {/* WhatsApp Float */}
       <a

@@ -38,6 +38,17 @@ const SiteImagesContext = createContext<SiteImagesMap>({});
 let warnedTableMissing = false;
 let warnedInvalidUrls = false;
 
+function getRuntimeEnvValue(key: string): string | undefined {
+  const viteValue = import.meta.env?.[key];
+  if (viteValue) return String(viteValue);
+
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+
+  return undefined;
+}
+
 function isAllowedSiteImageUrl(url: string | null | undefined): boolean {
   if (!url) return false;
 
@@ -54,7 +65,8 @@ function isAllowedSiteImageUrl(url: string | null | undefined): boolean {
     const parsed = new URL(url);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
 
-    const configuredSupabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const configuredSupabaseUrl =
+      getRuntimeEnvValue("VITE_SUPABASE_URL") || getRuntimeEnvValue("SUPABASE_URL");
     if (!configuredSupabaseUrl) return true;
 
     const configuredHost = new URL(configuredSupabaseUrl).hostname;
@@ -70,12 +82,14 @@ export function SiteImagesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    supabase
-      .from("site_images")
-      .select("id, slot_key, image_url, alt_text, display_order")
-      .order("slot_key")
-      .order("display_order")
-      .then(({ data, error }) => {
+    const loadImages = () => {
+      void Promise.resolve(
+        supabase
+          .from("site_images")
+          .select("id, slot_key, image_url, alt_text, display_order")
+          .order("slot_key")
+          .order("display_order")
+          .then(({ data, error }) => {
         if (cancelled) return;
         if (error) {
           // Table not migrated yet — fall back to defaults silently (warn once).
@@ -102,10 +116,15 @@ export function SiteImagesProvider({ children }: { children: ReactNode }) {
           (map[row.slot_key] ||= []).push(row);
         }
         setImages(map);
-      });
+          }),
+      ).catch(() => undefined);
+    };
+    loadImages();
+    window.addEventListener("site-images-updated", loadImages);
 
     return () => {
       cancelled = true;
+      window.removeEventListener("site-images-updated", loadImages);
     };
   }, []);
 
@@ -113,11 +132,26 @@ export function SiteImagesProvider({ children }: { children: ReactNode }) {
 }
 
 /** Returns the override URL for a single-image slot, or `fallback`. */
+const SLOT_KEY_ALIASES: Record<string, string[]> = {
+  "about.hero": ["about.hero", "greater-heights.about.hero", "new-heights.about.hero"],
+};
+
+function resolveSlotRows(images: SiteImagesMap, slotKey: string): SiteImageRow[] {
+  const aliases = SLOT_KEY_ALIASES[slotKey] || [slotKey];
+  for (const alias of aliases) {
+    const rows = images[alias];
+    if (rows && rows.length > 0) {
+      return rows;
+    }
+  }
+  return [];
+}
+
 export function useSiteImage(slotKey: string, fallback: string): string {
   const images = useContext(SiteImagesContext);
   return useMemo(() => {
-    const rows = images[slotKey];
-    return rows && rows.length > 0 ? rows[0].image_url : fallback;
+    const rows = resolveSlotRows(images, slotKey);
+    return rows.length > 0 ? rows[0].image_url : fallback;
   }, [images, slotKey, fallback]);
 }
 
@@ -125,8 +159,31 @@ export function useSiteImage(slotKey: string, fallback: string): string {
 export function useSiteImageList(slotKey: string, fallbacks: string[]): string[] {
   const images = useContext(SiteImagesContext);
   return useMemo(() => {
-    const rows = images[slotKey];
-    const urls = (rows || []).map((r) => r.image_url).filter(Boolean);
+    const rows = resolveSlotRows(images, slotKey);
+    const urls = rows.map((r) => r.image_url).filter(Boolean);
     return urls.length > 0 ? urls : fallbacks;
   }, [images, slotKey, fallbacks]);
+}
+
+export function useSiteImageSet(
+  slots: {
+    slotKey: string;
+    fallback: string;
+    legacySlotKey?: string;
+    legacyIndex?: number;
+  }[],
+): string[] {
+  const images = useContext(SiteImagesContext);
+  return useMemo(
+    () =>
+      slots.map((slot) => {
+        const rows = resolveSlotRows(images, slot.slotKey);
+        if (rows[0]?.image_url) return rows[0].image_url;
+        const legacyRows = slot.legacySlotKey
+          ? resolveSlotRows(images, slot.legacySlotKey)
+          : [];
+        return legacyRows[slot.legacyIndex ?? 0]?.image_url || slot.fallback;
+      }),
+    [images, slots],
+  );
 }

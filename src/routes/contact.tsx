@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, Mail, MapPin, MessageCircle, ArrowLeft, CheckCircle } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
+import { PropertyMap } from "@/components/PropertyMap";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/contact")({
@@ -110,19 +111,8 @@ function ContactPage() {
                 <MessageCircle className="h-4 w-4" /> Chat on WhatsApp
               </a>
 
-              {/* Google Map */}
-              <div className="mt-8 h-48 bg-cream-dark border border-border overflow-hidden">
-                <iframe
-                  title={`${houseName} Location`}
-                  src={
-                    activeHouse === "greater-heights"
-                      ? "https://www.google.com/maps?q=29.3271667,27.4882778&z=15&output=embed"
-                      : "https://www.google.com/maps?q=29.3167,27.4833&z=15&output=embed"
-                  }
-                  className="w-full h-full border-0"
-                  loading="lazy"
-                  allowFullScreen
-                />
+              <div className="mt-8">
+                <PropertyMap activeHouse={activeHouse} houseName={houseName} />
               </div>
             </motion.div>
 

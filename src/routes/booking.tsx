@@ -43,46 +43,45 @@ function BookingPage() {
   const [saveError, setSaveError] = useState("");
 
   const saveBooking = async (): Promise<boolean> => {
-    const guestsCount = parseInt(form.guests, 10);
-    const { error } = await supabase.from("bookings").insert({
-      guest_house: activeHouse,
-      guest_name: form.name,
-      guest_email: form.email,
-      guest_phone: form.phone,
-      check_in: form.checkIn,
-      check_out: form.checkOut,
-      room_type: form.roomType.split(" - ")[0],
-      guests_count: Number.isNaN(guestsCount) ? 1 : guestsCount,
-      special_requests: form.message || null,
-    });
-    if (error) {
+    try {
+      const guestsCount = parseInt(form.guests, 10);
+      const { error } = await supabase.from("bookings").insert({
+        guest_house: activeHouse,
+        guest_name: form.name,
+        guest_email: form.email,
+        guest_phone: form.phone,
+        check_in: form.checkIn,
+        check_out: form.checkOut,
+        room_type: form.roomType.split(" - ")[0],
+        guests_count: Number.isNaN(guestsCount) ? 1 : guestsCount,
+        special_requests: form.message || null,
+      });
+      if (error) throw error;
+      setSaveError("");
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "network error";
       setSaveError(
-        `We couldn't save your booking request (${error.message}). You can still send it via WhatsApp or email below.`,
+        `We couldn't save your booking request (${message}). You can still send it via WhatsApp or email.`,
       );
       return false;
     }
-    setSaveError("");
-    return true;
   };
 
   const handleWhatsApp = async () => {
+    const url = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(bookingMessage)}`;
     setSubmitting(true);
     await saveBooking();
+    window.location.assign(url);
     setSubmitting(false);
-    window.open(
-      `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(bookingMessage)}`,
-    );
-    setSubmitted(true);
   };
 
   const handleEmail = async () => {
+    const url = `mailto:${email}?subject=${encodeURIComponent(`Booking Request - ${houseName}`)}&body=${encodeURIComponent(bookingMessage)}`;
     setSubmitting(true);
     await saveBooking();
+    window.location.assign(url);
     setSubmitting(false);
-    window.open(
-      `mailto:${email}?subject=${encodeURIComponent(`Booking Request - ${houseName}`)}&body=${encodeURIComponent(bookingMessage)}`,
-    );
-    setSubmitted(true);
   };
 
   return (
@@ -146,7 +145,7 @@ function BookingPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-card border border-border p-8"
+              className="bg-card border border-border p-5 sm:p-8"
             >
               <div className="space-y-4">
                 {saveError && (
@@ -154,7 +153,7 @@ function BookingPage() {
                     {saveError}
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="text-xs tracking-widest uppercase text-muted-foreground mb-1 block">
                       Full Name
@@ -164,7 +163,7 @@ function BookingPage() {
                       value={form.name}
                       onChange={handleChange}
                       required
-                      className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+                      className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground caret-gold placeholder:text-muted-foreground focus:outline-none focus:border-gold-dark sm:px-4"
                     />
                   </div>
                   <div>
@@ -176,7 +175,7 @@ function BookingPage() {
                       value={form.phone}
                       onChange={handleChange}
                       required
-                      className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+                      className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground caret-gold placeholder:text-muted-foreground focus:outline-none focus:border-gold-dark sm:px-4"
                     />
                   </div>
                 </div>
@@ -191,11 +190,11 @@ function BookingPage() {
                     value={form.email}
                     onChange={handleChange}
                     required
-                    className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+                    className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground caret-gold placeholder:text-muted-foreground focus:outline-none focus:border-gold-dark sm:px-4"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="text-xs tracking-widest uppercase text-muted-foreground mb-1 block">
                       Check-in
@@ -206,7 +205,7 @@ function BookingPage() {
                       value={form.checkIn}
                       onChange={handleChange}
                       required
-                      className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+                      className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground caret-gold focus:outline-none focus:border-gold-dark sm:px-4"
                     />
                   </div>
                   <div>
@@ -219,12 +218,12 @@ function BookingPage() {
                       value={form.checkOut}
                       onChange={handleChange}
                       required
-                      className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+                      className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground caret-gold focus:outline-none focus:border-gold-dark sm:px-4"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="text-xs tracking-widest uppercase text-muted-foreground mb-1 block">
                       Room Type
@@ -233,7 +232,7 @@ function BookingPage() {
                       name="roomType"
                       value={form.roomType}
                       onChange={handleChange}
-                      className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+                      className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground focus:outline-none focus:border-gold-dark sm:px-4"
                     >
                       {roomTypes.map((r) => (
                         <option key={r} value={r}>
@@ -250,7 +249,7 @@ function BookingPage() {
                       name="guests"
                       value={form.guests}
                       onChange={handleChange}
-                      className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+                      className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground focus:outline-none focus:border-gold-dark sm:px-4"
                     >
                       {[1, 2, 3, 4, 5].map((n) => (
                         <option key={n} value={n}>
@@ -270,15 +269,15 @@ function BookingPage() {
                     value={form.message}
                     onChange={handleChange}
                     rows={3}
-                    className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark resize-none"
+                    className="w-full min-w-0 resize-y border border-border bg-background px-3 py-3 text-sm text-foreground caret-gold placeholder:text-muted-foreground focus:outline-none focus:border-gold-dark sm:px-4"
                   />
                 </div>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                   <button
                     onClick={handleWhatsApp}
                     type="button"
-                    disabled={submitting || !form.name || !form.checkIn || !form.checkOut}
+                    disabled={submitting || !form.name || !form.email || !form.phone || !form.checkIn || !form.checkOut}
                     className="flex-1 btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     Book via WhatsApp
@@ -286,7 +285,7 @@ function BookingPage() {
                   <button
                     onClick={handleEmail}
                     type="button"
-                    disabled={submitting || !form.name || !form.checkIn || !form.checkOut}
+                    disabled={submitting || !form.name || !form.email || !form.phone || !form.checkIn || !form.checkOut}
                     className="flex-1 btn-gold-outline disabled:opacity-50"
                   >
                     Book via Email

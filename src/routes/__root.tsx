@@ -69,10 +69,11 @@ function ThemedApp() {
   const location = useLocation();
   const theme = location.pathname === "/" ? "landing" : activeHouse;
   const isAdmin = location.pathname.startsWith("/admin");
+  const isLandingPage = location.pathname === "/";
 
   return (
     <div data-house-theme={theme}>
-      {!isAdmin && <Navbar />}
+      {!isAdmin && !isLandingPage && <Navbar />}
       <main>
         <Outlet />
       </main>

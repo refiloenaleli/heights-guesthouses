@@ -16,6 +16,10 @@ export default defineConfig({
       // Auto-generate routeTree.gen.ts from src/routes/
       routesDirectory: "./src/routes",
       generatedRouteTree: "./src/routeTree.gen.ts",
+      // booking-tracker.tsx lives in src/routes/admin/ but is a shared component
+      // module imported by the dashboard, NOT a route. Ignore it so the build
+      // stops warning about a missing Route export.
+      routeFileIgnorePattern: "booking-tracker",
     }),
     tailwindcss(),
     tsconfigPaths(),

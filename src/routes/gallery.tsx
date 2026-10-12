@@ -3,50 +3,15 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
+import { getPropertyGalleryImages } from "@/lib/site-gallery";
+import { useSiteImageSet } from "@/lib/site-images-context";
 import { supabase } from "@/integrations/supabase/client";
-import ghSingleRoom from "@/assets/gh-single-room.jpg";
-import ghCoupleRoom from "@/assets/gh-couple-room.jpg";
-import ghSharingRoom from "@/assets/gh-sharing-room.jpg";
-import ghDining from "@/assets/gh-dining.jpg";
-import ghExterior from "@/assets/gh-exterior.jpg";
-import ghStaircase from "@/assets/gh-staircase.jpg";
-import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
-import nhExterior1 from "@/assets/nh-exterior1.jpg";
-import nhExterior2 from "@/assets/nh-exterior2.jpg";
-import nhExterior3 from "@/assets/nh-exterior3.jpg";
-import nhSingleRoom from "@/assets/nh-single-room.jpg";
-import nhCoupleRoom from "@/assets/nh-couple-room.jpg";
-import nhSharingRoom from "@/assets/nh-sharing-room.jpg";
-import nhDining1 from "@/assets/nh-dining1.jpg";
-import nhDining2 from "@/assets/nh-dining2.jpg";
 
 export const Route = createFileRoute("/gallery")({
   component: GalleryPage,
 });
 
-const greaterHeightsImages = [
-  { src: ghExterior, alt: "Greater Heights Exterior", category: "Exterior" },
-  { src: ghCoupleRoom, alt: "Couple Suite", category: "Rooms" },
-  { src: ghSingleRoom, alt: "Single Room", category: "Rooms" },
-  { src: ghSharingRoom, alt: "Sharing Room", category: "Rooms" },
-  { src: ghDining, alt: "Banqueting Hall", category: "Dining" },
-  { src: ghOutdoorDining, alt: "Outdoor Dining", category: "Dining" },
-  { src: ghStaircase, alt: "Grand Staircase", category: "Interior" },
-];
-
-const newHeightsImages = [
-  { src: nhExterior1, alt: "New Heights Front View", category: "Exterior" },
-  { src: nhExterior2, alt: "New Heights Side View", category: "Exterior" },
-  { src: nhExterior3, alt: "New Heights Building", category: "Exterior" },
-  { src: nhSingleRoom, alt: "Single Room", category: "Rooms" },
-  { src: nhCoupleRoom, alt: "Couple Suite", category: "Rooms" },
-  { src: nhSharingRoom, alt: "Sharing Room", category: "Rooms" },
-  { src: nhDining1, alt: "Restaurant Ambiance", category: "Dining" },
-  { src: nhDining2, alt: "Dining Area", category: "Dining" },
-];
-
 const defaultCategories = ["All", "Rooms", "Dining", "Exterior", "Interior"];
-
 type GalleryImage = {
   src: string;
   alt: string;
@@ -58,10 +23,16 @@ function GalleryPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<GalleryImage[]>([]);
+  const propertyDefaults = getPropertyGalleryImages(activeHouse);
+  const propertyImageUrls = useSiteImageSet(
+    propertyDefaults.map((image) => ({
+      slotKey: `${activeHouse}.gallery.${image.key}`,
+      fallback: image.src,
+    })),
+  );
 
   useEffect(() => {
     let ignore = false;
-
     supabase
       .from("gallery_images")
       .select("image_url, alt_text, category, guest_house")
@@ -88,10 +59,14 @@ function GalleryPage() {
     };
   }, [activeHouse]);
 
-  const fallbackImages = [...greaterHeightsImages, ...newHeightsImages];
-  const images = uploadedImages.length > 0 ? uploadedImages : fallbackImages;
+  const builtInImages = propertyDefaults.map((image, index) => ({
+    src: propertyImageUrls[index],
+    alt: image.alt,
+    category: image.category,
+  }));
+  const images = [...builtInImages, ...uploadedImages];
   const categories = Array.from(
-    new Set([...defaultCategories, ...images.map((img) => img.category)]),
+    new Set([...defaultCategories, ...images.map((image) => image.category)]),
   );
   const filtered =
     activeCategory === "All" ? images : images.filter((img) => img.category === activeCategory);

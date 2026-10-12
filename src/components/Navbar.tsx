@@ -1,100 +1,166 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useState } from "react";
-import { Menu, X, Phone } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Menu, X } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { useSiteImage } from "@/lib/site-images-context";
 import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
+import nhLogo from "@/assets/nh-logo-transparent.png";
 
 const navLinks = [
   { to: "/home" as const, label: "Home" },
   { to: "/accommodation" as const, label: "Accommodation" },
-  { to: "/dining" as const, label: "Dining" },
+  { to: "/dining" as const, label: "Dining & Menu" },
   { to: "/gallery" as const, label: "Gallery" },
-  { to: "/reviews" as const, label: "Reviews" },
   { to: "/about" as const, label: "About" },
-  { to: "/contact" as const, label: "Contact" },
 ];
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { activeHouse, houseName, phoneNumber } = useGuestHouse();
   const location = useLocation();
-
+  const isGateway = location.pathname === "/";
+  const isHeroRoute =
+    location.pathname === "/home" ||
+    location.pathname === "/accommodation" ||
+    location.pathname === "/about";
   const logo = useSiteImage(
     `logo.${activeHouse}`,
     activeHouse === "greater-heights" ? ghLogo : nhLogo,
   );
-  const isHome = location.pathname === "/";
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [mobileOpen]);
+
+  if (isGateway) {
+    return (
+      <header className="fixed inset-x-0 top-0 z-50">
+        <div aria-hidden="true" className="h-2 bg-charcoal" />
+        <div className="flex h-14 items-center justify-center bg-charcoal/95 px-4">
+          <Link
+            to="/"
+            className="font-heading text-sm uppercase tracking-[0.3em] text-warm-white sm:text-base"
+          >
+            THE HEIGHTS
+          </Link>
+        </div>
+      </header>
+    );
+  }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-charcoal/90 backdrop-blur-md border-b border-gold/10">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link to="/home" className="flex items-center gap-3">
-          {!isHome && <img src={logo} alt={houseName} className="h-12 w-12 object-contain" />}
-          <div className="hidden sm:block">
-            <span className="block text-sm font-heading text-warm-white leading-tight tracking-wide">
-              {houseName}
-            </span>
-          </div>
-        </Link>
-
-        <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={`text-xs tracking-[0.2em] uppercase transition-colors font-medium ${
-                location.pathname === link.to ? "text-gold" : "text-warm-white/70 hover:text-gold"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4">
-          <a
-            href={`tel:${phoneNumber.replace(/[^0-9+]/g, "")}`}
-            title={`Call ${phoneNumber}`}
-            aria-label={`Call ${phoneNumber}`}
-            className="flex items-center justify-center h-9 w-9 rounded-full border border-gold/30 text-gold-light/80 hover:text-gold hover:border-gold transition-colors"
-          >
-            <Phone className="h-4 w-4" />
-          </a>
+    <>
+      <header
+        className={`inset-x-0 top-0 z-50 ${
+          isHeroRoute
+            ? "fixed bg-gradient-to-b from-charcoal/90 via-charcoal/40 to-transparent"
+            : "sticky bg-charcoal/95"
+        }`}
+      >
+        <nav className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 text-white sm:min-h-[72px] sm:gap-5">
           <Link
-            to="/booking"
-            className="hidden sm:block btn-gold text-[10px] px-5 py-2.5 tracking-[0.2em]"
+            to="/home"
+            aria-label={`${houseName} home`}
+            className="flex h-12 w-12 shrink-0 items-center justify-center sm:h-14 sm:w-14"
           >
-            Reservation
+            <img src={logo} alt={houseName} className="property-logo-shadow h-full w-full object-contain" />
           </Link>
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden text-warm-white">
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+
+          <div className="hidden items-center gap-3 lg:flex xl:gap-5">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`whitespace-nowrap text-[10px] uppercase tracking-[0.15em] transition-colors ${
+                  location.pathname === link.to ? "text-gold" : "text-white/85 hover:text-white"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="ml-auto hidden sm:flex lg:ml-0">
+            <Link
+              to="/booking"
+              className="rounded-full bg-amber-400 px-5 py-2 text-xs font-semibold text-neutral-950 transition-colors hover:bg-amber-300 sm:px-6"
+            >
+              Book Now
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open navigation menu"
+            aria-expanded={mobileOpen}
+            aria-controls="property-mobile-navigation"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/40 bg-charcoal/40 text-white backdrop-blur-sm transition-colors hover:bg-white/15 lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
           </button>
-        </div>
-      </nav>
+        </nav>
+      </header>
 
       {mobileOpen && (
-        <div className="lg:hidden bg-charcoal/95 backdrop-blur-md border-t border-gold/20 px-4 pb-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              onClick={() => setMobileOpen(false)}
-              className="block py-3 text-sm tracking-[0.2em] uppercase text-warm-white/80 hover:text-gold border-b border-gold/10"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <Link
-            to="/booking"
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <button
+            type="button"
+            aria-label="Close navigation menu"
             onClick={() => setMobileOpen(false)}
-            className="mt-4 block btn-gold text-center"
+            className="absolute inset-0 h-full w-full bg-black/65 backdrop-blur-sm"
+          />
+          <nav
+            id="property-mobile-navigation"
+            aria-label="Property navigation"
+            className="absolute inset-y-0 right-0 flex w-[min(88vw,360px)] flex-col bg-charcoal px-6 pb-8 pt-5 shadow-2xl shadow-black/40"
           >
-            Reservation
-          </Link>
+            <div className="mb-8 flex items-center justify-between gap-4 border-b border-white/10 pb-5">
+              <img src={logo} alt={houseName} className="property-logo-shadow h-12 w-12 object-contain" />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close navigation menu"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/80 hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex flex-col">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={`border-b border-white/10 py-4 text-sm uppercase tracking-[0.14em] ${
+                    location.pathname === link.to ? "text-gold" : "text-white/85"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+            <Link
+              to="/booking"
+              onClick={() => setMobileOpen(false)}
+              className="mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-amber-400 px-6 text-sm font-semibold text-neutral-950"
+            >
+              Book Now
+            </Link>
+            <a
+              href={`tel:${phoneNumber.replace(/[^0-9+]/g, "")}`}
+              className="mt-auto pt-8 text-center text-sm text-slate-300"
+            >
+              Call {phoneNumber}
+            </a>
+          </nav>
         </div>
       )}
-    </header>
+    </>
   );
 }

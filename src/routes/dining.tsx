@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGuestHouse } from "@/lib/guest-house-context";
-import { useSiteImage, useSiteImageList } from "@/lib/site-images-context";
+import { useSiteImage, useSiteImageSet } from "@/lib/site-images-context";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { ChevronLeft, ChevronRight, Download, X, ArrowLeft } from "lucide-react";
@@ -16,13 +16,34 @@ type MenuItem = Tables<"menu_items">;
 type DiningBanner = Tables<"dining_banners">;
 type MenuImage = Tables<"menu_images">;
 
+const menuSeed: Omit<MenuItem, "id" | "guest_house">[] = [
+  { name: "Full English Breakfast", description: "Eggs, bacon, sausage, toast, grilled tomato", price: "M85", category: "breakfast", display_order: 0, is_available: true, created_at: "", updated_at: "" },
+  { name: "Continental Breakfast", description: "Croissants, fruit, yogurt, cereals, juice", price: "M65", category: "breakfast", display_order: 1, is_available: true, created_at: "", updated_at: "" },
+  { name: "African Breakfast", description: "Traditional porridge, bread, eggs, tea", price: "M55", category: "breakfast", display_order: 2, is_available: true, created_at: "", updated_at: "" },
+  { name: "Grilled Chicken Salad", description: "Mixed greens, grilled chicken, vinaigrette", price: "M95", category: "lunch", display_order: 0, is_available: true, created_at: "", updated_at: "" },
+  { name: "Club Sandwich", description: "Triple-decker with fries and coleslaw", price: "M85", category: "lunch", display_order: 1, is_available: true, created_at: "", updated_at: "" },
+  { name: "Beef Stew", description: "Slow-cooked beef with seasonal vegetables, rice", price: "M110", category: "lunch", display_order: 2, is_available: true, created_at: "", updated_at: "" },
+  { name: "Grilled Lamb Chops", description: "Herb-crusted lamb with roasted vegetables", price: "M165", category: "dinner", display_order: 0, is_available: true, created_at: "", updated_at: "" },
+  { name: "Pan-Seared Salmon", description: "With lemon butter sauce and mashed potatoes", price: "M155", category: "dinner", display_order: 1, is_available: true, created_at: "", updated_at: "" },
+  { name: "Vegetable Stir-Fry", description: "Fresh seasonal vegetables with rice or noodles", price: "M95", category: "dinner", display_order: 2, is_available: true, created_at: "", updated_at: "" },
+];
+
+function getFallbackMenu(guestHouse: string): MenuItem[] {
+  return menuSeed.map((item, index) => ({
+    ...item,
+    id: `sample-${guestHouse}-${index}`,
+    guest_house: guestHouse,
+  }));
+}
+
 export const Route = createFileRoute("/dining")({
   component: DiningPage,
 });
 
 function DiningPage() {
   const { houseName, activeHouse } = useGuestHouse();
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(() => getFallbackMenu(activeHouse));
+  const [usingSampleMenu, setUsingSampleMenu] = useState(true);
   const [banners, setBanners] = useState<DiningBanner[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [menuImages, setMenuImages] = useState<MenuImage[]>([]);
@@ -34,14 +55,27 @@ function DiningPage() {
   const interiorImage = useSiteImage(`${activeHouse}.dining.interior`, diningInterior);
 
   useEffect(() => {
-    supabase
-      .from("menu_items")
-      .select("*")
-      .eq("guest_house", activeHouse)
-      .order("display_order")
-      .then(({ data }) => {
-        setMenuItems(data || []);
-      });
+    let cancelled = false;
+    setMenuItems(getFallbackMenu(activeHouse));
+    setUsingSampleMenu(true);
+    Promise.resolve(
+      supabase
+        .from("menu_items")
+        .select("*")
+        .eq("guest_house", activeHouse)
+        .order("display_order")
+        .then(({ data, error }) => {
+        if (cancelled || error || !data?.length) return;
+        const availableItems = data.filter((item) => item.is_available);
+        if (!availableItems.length) return;
+          setMenuItems(availableItems);
+          setUsingSampleMenu(false);
+        }),
+    ).catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
   }, [activeHouse]);
 
   useEffect(() => {
@@ -104,24 +138,31 @@ function DiningPage() {
     activeHouse === "greater-heights"
       ? [ghOutdoorDining, ghDining, diningInterior]
       : [nhDining2, nhDining1, diningInterior];
-  const foodImages = useSiteImageList(`${activeHouse}.dining.meals`, mealImageFallbacks);
+  const foodImages = useSiteImageSet(
+    mealImageFallbacks.map((fallback, index) => ({
+      slotKey: `${activeHouse}.dining.meals.${index + 1}`,
+      fallback,
+      legacySlotKey: `${activeHouse}.dining.meals`,
+      legacyIndex: index,
+    })),
+  );
   return (
     <>
       {/* Hero Section */}
-      <section className="relative -mt-[60px] h-[85vh] min-h-[600px]">
-        <img src={heroImage} alt="Dining" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="hero-overlay absolute inset-0" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center px-4">
+      <section className="photo-hero photo-hero-fixed-nav relative -mt-[60px] h-[85vh] min-h-[600px]">
+        <img src={heroImage} alt="Dining" className="photo-hero-image absolute inset-0 h-full w-full object-cover" />
+        <div className="photo-hero-overlay hero-overlay absolute inset-0" />
+        <div className="photo-hero-content relative z-10 flex h-full flex-col items-center justify-center text-center px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
             <span className="section-label text-gold-light tracking-[0.3em]">AT THE TABLE</span>
-            <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl text-warm-white font-normal tracking-wide mt-4 mb-4">
+            <h1 className="mb-1 mt-2 font-heading text-lg font-normal leading-tight tracking-wide text-warm-white sm:mb-4 sm:mt-4 sm:text-4xl md:text-6xl lg:text-7xl">
               Dining at the Heights
             </h1>
-            <p className="mt-4 max-w-xl mx-auto text-sm md:text-base text-warm-white/80 leading-relaxed">
+            <p className="mx-auto mt-1 max-w-xl text-[10px] leading-tight text-warm-white/90 sm:mt-4 sm:text-sm sm:leading-relaxed md:text-base">
               Good food. Unhurried moments. A table worth lingering at.
             </p>
           </motion.div>
@@ -173,7 +214,7 @@ function DiningPage() {
 
       {/* Banner Slideshow */}
       {banners.length > 0 && (
-        <section className="relative h-[60vh] min-h-[400px] bg-charcoal overflow-hidden">
+        <section className="dining-landscape-banner relative h-[60vh] min-h-[400px] bg-charcoal overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentBannerIndex}
@@ -275,6 +316,12 @@ function DiningPage() {
             Savour gourmet dishes and refreshing cocktails at {houseName}'s elegant restaurant and
             bar.
           </p>
+          {usingSampleMenu && (
+            <p className="mb-8 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-center text-xs leading-relaxed text-muted-foreground">
+              Showing the sample menu because live menu data is unavailable. Please confirm current
+              dishes and prices with our team.
+            </p>
+          )}
 
           {categories.map((meal, index) => (
             <motion.div

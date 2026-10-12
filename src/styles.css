@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Angle&family=Estarossa&family=Lato:wght@300;400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Angle&family=Estarossa&family=Inter:wght@300;400;500;600;700&family=Lato:wght@300;400;500;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -54,7 +54,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --font-heading: "Angle", Georgia, serif;
-  --font-accent: "Estarossa", "Brush Script MT", cursive;
+  --font-accent: "Angle", Georgia, serif;
   --font-body: "Lato", system-ui, sans-serif;
 }
 
@@ -141,13 +141,25 @@
     border-color: var(--color-border);
   }
 
+  input,
+  textarea,
+  select {
+    color: var(--color-foreground);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-muted-foreground);
+  }
+
   body {
-    background-color: var(--color-background);
+    background-color: #0c0f0e;
     background-image: radial-gradient(oklch(0.32 0.02 50 / 4%) 0.55px, transparent 0.55px);
     background-size: 8px 8px;
-    color: var(--color-foreground);
-    font-family: var(--font-body);
+    color: rgb(248 250 252);
+    font-family: "Inter", "Lato", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    @apply antialiased selection:bg-amber-500/30 selection:text-amber-200;
   }
 
   h1,
@@ -156,42 +168,44 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-heading);
+    font-family: "Angle", Georgia, serif;
+    letter-spacing: 0.02em;
   }
 
   ::selection {
-    background: var(--color-gold);
-    color: var(--color-charcoal);
+    background: rgba(251, 191, 36, 0.3);
+    color: rgb(254 243 199);
   }
 }
 
 @layer components {
   .btn-gold {
-    background-color: var(--color-gold-dark);
-    color: var(--color-warm-white);
+    background: linear-gradient(135deg, #fcd978 0%, #fbbf24 52%, #d99a12 100%);
+    color: #17130a;
     padding: 0.75rem 2rem;
     font-family: var(--font-body);
     font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     font-size: 0.75rem;
-    box-shadow: 0 8px 20px oklch(0.2 0.02 48 / 12%);
+    box-shadow: 0 8px 20px rgb(0 0 0 / 18%);
     transition:
       transform 0.3s ease,
       background-color 0.3s ease,
       box-shadow 0.3s ease;
-    border: 1px solid var(--color-gold-dark);
+    border: 1px solid rgb(252 217 120 / 72%);
+    border-radius: 9999px;
   }
   .btn-gold:hover {
-    background-color: var(--color-gold);
-    border-color: var(--color-gold);
-    box-shadow: 0 12px 26px oklch(0.2 0.02 48 / 18%);
+    background: linear-gradient(135deg, #ffe7a0 0%, #fbc53c 52%, #e5a41b 100%);
+    border-color: #ffe7a0;
+    box-shadow: 0 12px 26px rgb(0 0 0 / 24%);
     transform: translateY(-2px);
   }
 
   .btn-gold-outline {
-    background-color: transparent;
-    color: var(--color-charcoal);
+    background: linear-gradient(135deg, rgb(255 255 255 / 9%), rgb(255 255 255 / 3%));
+    color: var(--color-foreground);
     padding: 0.75rem 2rem;
     font-family: var(--font-body);
     font-weight: 500;
@@ -202,11 +216,13 @@
       color 0.3s ease,
       background-color 0.3s ease,
       border-color 0.3s ease;
-    border: 1px solid var(--color-charcoal);
+    border: 1px solid rgb(255 255 255 / 35%);
+    border-radius: 9999px;
   }
   .btn-gold-outline:hover {
-    background-color: var(--color-charcoal);
-    color: var(--color-warm-white);
+    background: linear-gradient(135deg, rgb(255 255 255 / 16%), rgb(255 255 255 / 7%));
+    border-color: rgb(255 255 255 / 65%);
+    color: var(--color-foreground);
   }
 
   .section-label {
@@ -231,7 +247,177 @@
   .font-accent {
     font-family: var(--font-accent);
     font-size: 1.25rem;
+    font-style: normal;
+    font-weight: 500;
     line-height: 1.2;
+  }
+
+  .hero-property-track {
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .hero-property-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .property-logo-shadow {
+    filter: drop-shadow(0 3px 10px rgb(0 0 0 / 72%));
+  }
+
+  @media (max-width: 767px) {
+    .photo-hero {
+      position: relative;
+      display: block;
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: hidden;
+      background: #0c0f0e;
+    }
+
+    .photo-hero-fixed-nav {
+      margin-top: 0 !important;
+      padding-top: 0;
+    }
+
+    .photo-hero-image {
+      position: absolute !important;
+      inset: 0 !important;
+      display: block;
+      width: 100%;
+      height: 100% !important;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .photo-hero-overlay {
+      display: block;
+      background: linear-gradient(
+        180deg,
+        rgb(12 15 14 / 55%) 0%,
+        rgb(12 15 14 / 20%) 30%,
+        rgb(12 15 14 / 72%) 64%,
+        rgb(12 15 14 / 92%) 100%
+      );
+    }
+
+    .photo-hero-content {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100% !important;
+      min-height: 100% !important;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      box-sizing: border-box;
+    }
+
+    .photo-hero-content:not(.home-hero-copy) {
+      align-items: center !important;
+      padding: 64px 14px 8px !important;
+    }
+
+    .home-hero-copy {
+      min-height: 100%;
+      padding: 60px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home-hero-copy > img {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 4px;
+    }
+
+    .home-hero-copy h1 {
+      margin-bottom: 5px;
+      font-size: clamp(1rem, 4.6vw, 1.2rem);
+      line-height: 1.15;
+    }
+
+    .home-hero-copy p {
+      margin-bottom: 8px;
+      font-size: 0.64rem;
+      line-height: 1.25;
+    }
+
+    .home-hero-copy > div:last-child {
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .home-hero-copy > div:last-child a {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.55rem;
+    }
+
+    .photo-hero:has(.photo-hero-image) {
+      aspect-ratio: 16 / 10;
+      min-height: 0 !important;
+    }
+
+    .photo-hero:has(.photo-hero-image) .photo-hero-content {
+      min-height: 100%;
+      height: 100%;
+    }
+
+    .photo-hero:has(.photo-hero-image) .photo-hero-content > div {
+      max-width: 100%;
+      padding-top: 0;
+      padding-bottom: 0;
+      align-self: stretch;
+    }
+
+    .photo-hero:has(.photo-hero-image) .photo-hero-content h1 {
+      margin-top: 4px;
+      margin-bottom: 4px;
+      font-size: clamp(1rem, 4.6vw, 1.2rem);
+      line-height: 1.12;
+    }
+
+    .photo-hero:has(.photo-hero-image) .photo-hero-content p {
+      margin-top: 4px;
+      margin-bottom: 0;
+      font-size: 0.62rem;
+      line-height: 1.25;
+    }
+
+    .photo-hero:has(.photo-hero-image) .photo-hero-content .section-label {
+      font-size: 0.48rem;
+      letter-spacing: 0.12em;
+    }
+
+    .gateway-property-hero {
+      height: auto !important;
+      min-height: 0 !important;
+      margin-top: 0 !important;
+      padding-bottom: 38px;
+    }
+
+    .gateway-property-hero .hero-property-track {
+      height: auto !important;
+      margin-top: 244px;
+      aspect-ratio: 16 / 9;
+    }
+
+    .gateway-property-hero .hero-property-track > div {
+      height: 100% !important;
+    }
+
+    .dining-landscape-banner .photo-hero-content > div {
+      padding-top: 20px !important;
+    }
+  }
+
+  .premium-glass {
+    background: rgba(18, 24, 22, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   .hero-overlay {
@@ -241,6 +427,125 @@
       oklch(0.08 0.02 45 / 18%) 62%,
       oklch(0.08 0.02 45 / 55%)
     );
+  }
+
+  .admin-dashboard-container {
+    background-color: #0c0f0e;
+    color: #f1f5f9;
+    font-family: "Inter", "Lato", sans-serif;
+  }
+
+  .admin-panel-card {
+    background: rgba(18, 24, 22, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    border-radius: 0.5rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .admin-panel-card:hover {
+    border-color: rgba(251, 191, 36, 0.25);
+    box-shadow: 0 12px 40px 0 rgba(245, 158, 11, 0.05);
+  }
+
+  .tape-chart-grid {
+    display: grid;
+    grid-template-columns: 160px repeat(14, minmax(100px, 1fr));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .tape-chart-header {
+    background: #111614;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .tape-chart-cell {
+    min-height: 3.5rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
+    position: relative;
+    background-color: rgba(12, 15, 14, 0.2);
+  }
+
+  .booking-bar-base {
+    position: absolute;
+    height: calc(100% - 12px);
+    top: 6px;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+
+  .booking-bar-base:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.15);
+  }
+
+  .booking-status-confirmed {
+    background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    color: #a7f3d0;
+    border-left: 3px solid #34d399;
+  }
+
+  .booking-status-checkedin {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+    color: #bfdbfe;
+    border-left: 3px solid #60a5fa;
+  }
+
+  .booking-status-unpaid {
+    background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%);
+    color: #fecaca;
+    border-left: 3px solid #f87171;
+  }
+
+  .booking-status-blocked {
+    background: linear-gradient(135deg, #334155 0%, #475569 100%);
+    color: #cbd5e1;
+    border-left: 3px solid #94a3b8;
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.03) 10px,
+      rgba(255, 255, 255, 0.03) 20px
+    );
+  }
+
+  .admin-input-field {
+    background: #111614;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f8fafc;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .admin-input-field:focus {
+    outline: none;
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.15);
+  }
+
+  .photo-dropzone-active {
+    border: 2px dashed rgba(251, 191, 36, 0.4);
+    background: rgba(251, 191, 36, 0.02);
+    transition: all 0.3s ease;
   }
 
   .bg-card {

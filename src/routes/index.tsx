@@ -3,20 +3,16 @@ import { motion } from "framer-motion";
 import {
   MapPin,
   Star,
-  ArrowRight,
   Building2,
-  BedDouble,
-  UtensilsCrossed,
-  Wifi,
   Shield,
-  Car,
 } from "lucide-react";
+import { useRef, useState } from "react";
 import { useGuestHouse, type GuestHouse } from "@/lib/guest-house-context";
 import { useSiteImage } from "@/lib/site-images-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
 import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
+import nhLogo from "@/assets/nh-logo-transparent.png";
 
 export const Route = createFileRoute("/")({
   component: PropertySelectPage,
@@ -25,100 +21,106 @@ export const Route = createFileRoute("/")({
 const properties: {
   id: GuestHouse;
   name: string;
-  tagline: string;
   description: string;
-  image: string;
   logo: string;
-  features: { icon: typeof BedDouble; label: string }[];
 }[] = [
   {
     id: "greater-heights",
     name: "Greater Heights Guest House",
-    tagline: "Intimate. Warm. Effortlessly comfortable.",
     description:
-      "A welcoming Maseru retreat for restful stays, corporate travellers and smaller gatherings.",
-    image: ghExterior,
+      "Katlehong, Maseru — intimate stays, smaller meetings, corporate travellers. 10 rooms, up to 25 guests, 2 conference rooms.",
     logo: ghLogo,
-    features: [
-      { icon: BedDouble, label: "10 Air-Conditioned Rooms" },
-      { icon: UtensilsCrossed, label: "In-House Chef" },
-      { icon: Wifi, label: "Reliable Wi-Fi" },
-      { icon: Shield, label: "24/7 Security" },
-    ],
   },
   {
     id: "new-heights",
     name: "New Heights Guest House",
-    tagline: "More room. More possibilities.",
     description:
-      "Designed for larger groups, conferences, events and stays that need a little more space.",
-    image: nhExterior1,
+      "Khubetsoana, Lerakong, Maseru — larger stays, big conferences, events, group packages. 15 rooms, up to 45 guests, 1 conference room up to 300 delegates.",
     logo: nhLogo,
-    features: [
-      { icon: BedDouble, label: "Comfort Rooms" },
-      { icon: UtensilsCrossed, label: "Restaurant" },
-      { icon: Wifi, label: "Free WiFi" },
-      { icon: Car, label: "Free Parking" },
-    ],
   },
 ];
 
 function PropertySelectPage() {
   const { setActiveHouse } = useGuestHouse();
-  const landingHero = useSiteImage("landing.hero", ghExterior);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const heroTrackRef = useRef<HTMLDivElement>(null);
   const cardImages: Record<GuestHouse, string> = {
     "greater-heights": useSiteImage("landing.card.greater-heights", ghExterior),
     "new-heights": useSiteImage("landing.card.new-heights", nhExterior1),
   };
+  const propertyLogos: Record<GuestHouse, string> = {
+    "greater-heights": useSiteImage("logo.greater-heights", ghLogo),
+    "new-heights": useSiteImage("logo.new-heights", nhLogo),
+  };
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative h-[70vh] min-h-[500px] -mt-[60px]">
-        <img
-          src={landingHero}
-          alt="Heights Guest Houses"
-          className="absolute inset-0 h-full w-full object-cover"
-          width={1920}
-          height={1080}
-        />
-        <div className="hero-overlay absolute inset-0" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <span className="section-label text-gold-light">TWO HOMES. ONE TRUSTED HOST.</span>
-            <div className="mb-4 mt-4 flex justify-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-5 w-5 fill-gold text-gold" />
-              ))}
+      <section className="gateway-property-hero relative -mt-[60px] h-[82vh] min-h-[560px] overflow-hidden bg-charcoal">
+        <div className="absolute left-1/2 top-20 z-30 w-full max-w-2xl -translate-x-1/2 px-4 text-center">
+          <span className="section-label text-gold-light">TWO HOMES. ONE TRUSTED HOST.</span>
+          <h1 className="mt-3 font-heading text-3xl font-normal text-white md:text-4xl">
+            Heights Guest Houses
+          </h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-white/85 md:text-base">
+            Two welcoming homes. One trusted host in Maseru. Choose between Greater Heights and New
+            Heights for your perfect stay.
+          </p>
+        </div>
+        <div
+          ref={heroTrackRef}
+          onScroll={(event) => {
+            const track = event.currentTarget;
+            setActiveSlide(Math.min(1, Math.round(track.scrollLeft / track.clientWidth)));
+          }}
+          aria-label="Choose a guest house. Swipe to see both properties."
+          className="hero-property-track relative z-10 flex h-full flex-row overflow-x-auto snap-x snap-mandatory md:overflow-hidden"
+        >
+          {properties.map((property) => (
+            <div
+              key={property.id}
+              className="group relative h-full w-full flex-none snap-center overflow-hidden border-r border-white/10 transition-[flex] duration-700 md:w-auto md:flex-1 md:hover:flex-[1.15]"
+            >
+              <img
+                src={cardImages[property.id]}
+                alt={`${property.name} exterior`}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-neutral-950/50 transition-colors duration-500 group-hover:bg-neutral-950/35" />
+              <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-charcoal/55" />
+              <div className="absolute inset-x-0 bottom-14 z-10 flex flex-col items-center px-5 text-center">
+                <h2 className="mb-5 font-heading text-3xl font-normal text-white md:text-4xl">
+                  {property.name.replace(" Guest House", "")}
+                </h2>
+                <Link
+                  to="/home"
+                  onClick={() => setActiveHouse(property.id)}
+                  className="rounded-full border border-white/55 bg-white/10 px-7 py-3 text-[10px] uppercase tracking-[0.2em] text-white backdrop-blur-md transition-colors hover:bg-white/20"
+                >
+                  Enter Property
+                </Link>
+              </div>
             </div>
-            <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl text-warm-white font-normal tracking-wide mb-4">
-              Heights Guest Houses
-            </h1>
-            <p className="max-w-2xl mx-auto text-warm-white/80 text-sm md:text-base mb-8 leading-relaxed">
-              Two welcoming homes. One trusted host in Maseru. Choose between Greater Heights and
-              New Heights for your perfect stay.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                to="/home"
-                onClick={() => setActiveHouse("greater-heights")}
-                className="btn-gold"
-              >
-                Book Greater Heights
-              </Link>
-              <Link
-                to="/home"
-                onClick={() => setActiveHouse("new-heights")}
-                className="btn-gold-outline text-warm-white border-warm-white/50 hover:bg-warm-white hover:text-charcoal"
-              >
-                Book New Heights
-              </Link>
-            </div>
-          </motion.div>
+          ))}
+        </div>
+        <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 md:hidden" aria-label="Hero slides">
+          {properties.map((property, index) => (
+            <button
+              key={property.id}
+              type="button"
+              aria-label={`Show ${property.name}`}
+              aria-current={activeSlide === index ? "true" : undefined}
+              onClick={() => {
+                heroTrackRef.current?.scrollTo({
+                  left: index * (heroTrackRef.current.clientWidth || 0),
+                  behavior: "smooth",
+                });
+                setActiveSlide(index);
+              }}
+              className={`h-2.5 rounded-full transition-all ${
+                activeSlide === index ? "w-7 bg-amber-300" : "w-2.5 bg-white/55"
+              }`}
+            />
+          ))}
         </div>
       </section>
 
@@ -165,70 +167,42 @@ function PropertySelectPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.15 }}
                 viewport={{ once: true }}
-                className="group relative overflow-hidden rounded-lg border border-border bg-card shadow-sm hover:shadow-xl transition-all duration-300"
+                className="relative overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm transition-shadow duration-300 hover:shadow-xl"
               >
-                {/* Property Image */}
-                <div className="relative h-72 overflow-hidden">
+                <div className="mb-6 flex items-center gap-4 border-b border-border pb-5">
                   <img
-                    src={cardImages[property.id]}
+                    src={propertyLogos[property.id]}
                     alt={property.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    width={800}
-                    height={600}
+                    className={`h-14 w-14 shrink-0 rounded-full ${
+                      property.id === "greater-heights"
+                        ? "border-2 border-gold/70 p-1 object-cover ring-2 ring-gold/20"
+                        : "object-contain"
+                    }`}
+                    width={56}
+                    height={56}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/20 to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-                    <div>
-                      <span className="font-accent text-xl text-gold-light">
-                        {property.tagline}
-                      </span>
-                      <h3 className="font-heading text-2xl text-warm-white mt-1">
-                        {property.name}
-                      </h3>
-                    </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-gold-light">
+                      Guest House
+                    </span>
+                    <h3 className="mt-1 font-heading text-2xl text-foreground">
+                      {property.name.replace(" Guest House", "")}
+                    </h3>
                   </div>
                 </div>
 
-                {/* Property Details */}
-                <div className="p-6">
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                    {property.description}
-                  </p>
+                <p className="mb-6 max-w-prose text-sm leading-7 text-muted-foreground">
+                  {property.description}
+                </p>
 
-                  {/* Features */}
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    {property.features.map((f) => (
-                      <div key={f.label} className="flex items-center gap-2">
-                        <f.icon className="h-4 w-4 text-gold-dark flex-shrink-0" />
-                        <span className="text-xs font-medium text-foreground">{f.label}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Location */}
-                  <div className="flex items-center gap-2 mb-6 text-xs text-muted-foreground">
-                    <MapPin className="h-4 w-4 text-gold-dark" />
-                    Maseru, Lesotho
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <Link
-                      to="/home"
-                      onClick={() => setActiveHouse(property.id)}
-                      className="btn-gold flex-1 text-center inline-flex items-center justify-center gap-2"
-                    >
-                      Explore {property.id === "greater-heights" ? "Greater" : "New"} Heights
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <Link
-                      to="/booking"
-                      onClick={() => setActiveHouse(property.id)}
-                      className="btn-gold-outline flex-1 text-center"
-                    >
-                      Book Now
-                    </Link>
-                  </div>
+                <div>
+                  <Link
+                    to="/booking"
+                    onClick={() => setActiveHouse(property.id)}
+                    className="btn-gold inline-flex items-center justify-center rounded-full px-6 py-2.5 text-[10px]"
+                  >
+                    Book Now
+                  </Link>
                 </div>
               </motion.div>
             ))}

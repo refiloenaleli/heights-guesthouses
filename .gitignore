@@ -35,3 +35,13 @@ dist-ssr
 .netlify
 
 .env
+# Local diagnostic scripts / logs (dev-only, never commit)
+scripts/
+.agents/
+skills-lock.json
+iso*.txt
+iso*.log
+step*.txt
+step*.log
+tsc*.txt
+dev-*.log

@@ -107,19 +107,27 @@ const defaultRooms: Omit<RoomRecord, "id">[] = [
 function AccommodationPage() {
   const { houseName, activeHouse } = useGuestHouse();
   const [rooms, setRooms] = useState<RoomRecord[]>([]);
+  const [usingDefaultRooms, setUsingDefaultRooms] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<RoomRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   // Admin-uploaded images per room type (from the "Room Images" dashboard tab).
   const [dbRoomImages, setDbRoomImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    supabase
-      .from("room_prices")
-      .select("*")
-      .eq("guest_house", activeHouse)
-      .order("display_order")
-      .then(({ data }) => {
+    let cancelled = false;
+    setRooms(defaultRooms.map((room) => ({ ...room, id: `${activeHouse}-${room.room_type}` })));
+    setUsingDefaultRooms(true);
+
+    Promise.resolve(
+      supabase
+        .from("room_prices")
+        .select("*")
+        .eq("guest_house", activeHouse)
+        .order("display_order")
+        .then(({ data }) => {
+        if (cancelled || !data?.length) return;
         const savedRooms = data || [];
+        if (savedRooms.length) setUsingDefaultRooms(false);
         const savedByType = new Map(savedRooms.map((room) => [room.room_type, room]));
         setRooms(
           defaultRooms.map((room) => {
@@ -137,7 +145,12 @@ function AccommodationPage() {
             };
           }),
         );
-      });
+        }),
+    ).catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
   }, [activeHouse]);
 
   useEffect(() => {
@@ -175,14 +188,14 @@ function AccommodationPage() {
 
   return (
     <>
-      <section className="relative min-h-[560px] overflow-hidden bg-charcoal">
+      <section className="photo-hero photo-hero-fixed-nav relative min-h-[560px] overflow-hidden bg-charcoal">
         <img
           src={heroImage}
           alt={`${houseName} executive room`}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="photo-hero-image absolute inset-0 h-full w-full object-cover"
         />
-        <div className="hero-overlay absolute inset-0" />
-        <div className="relative z-10 mx-auto flex min-h-[560px] max-w-6xl items-end px-4 pb-16 md:pb-24">
+        <div className="photo-hero-overlay hero-overlay absolute inset-0" />
+        <div className="photo-hero-content relative z-10 mx-auto flex min-h-[560px] max-w-6xl items-end px-4 pb-16 md:pb-24">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -193,12 +206,12 @@ function AccommodationPage() {
                 ? "GREATER HEIGHTS · KATLEHONG"
                 : "NEW HEIGHTS · KHUBETSOANA"}
             </span>
-            <h1 className="mt-3 max-w-3xl font-heading text-4xl font-normal text-warm-white md:text-6xl">
+            <h1 className="mt-2 max-w-3xl font-heading text-lg font-normal leading-tight text-warm-white sm:mt-3 sm:text-3xl md:text-6xl">
               {activeHouse === "greater-heights"
                 ? "Stay at Greater Heights Guest House"
                 : "More room for what matters."}
             </h1>
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-warm-white/80 md:text-base">
+            <p className="mt-2 max-w-xl text-[10px] leading-tight text-warm-white/90 sm:mt-5 sm:text-sm sm:leading-relaxed md:text-base">
               {activeHouse === "greater-heights"
                 ? "Refined Comfort & Modern Hospitality. Thoughtfully appointed rooms, restful surroundings, and warm service in the heart of Maseru."
                 : "Comfortable stays, generous spaces and hospitality designed for groups, business and events."}
@@ -292,6 +305,12 @@ function AccommodationPage() {
               explore its details and gallery.
             </p>
           </div>
+          {usingDefaultRooms && (
+            <p className="mb-8 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-center text-xs leading-relaxed text-muted-foreground">
+              Showing standard room details while live accommodation data is unavailable. Please
+              confirm current rates and availability with our team.
+            </p>
+          )}
           <div className="grid gap-8 md:grid-cols-2">
             {accommodationRooms.map((room, i) => (
               <div key={room.id}>

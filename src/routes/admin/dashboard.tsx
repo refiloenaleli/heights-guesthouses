@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, redirect } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   CalendarDays,
+  CalendarRange,
   MessageSquare,
   Image,
   Phone,
@@ -14,6 +15,7 @@ import {
   Upload,
   Trash2,
   Settings,
+  Send,
   Users,
   Home,
   Tag,
@@ -25,12 +27,19 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
+import { CalendarPanel, GuestProfilesPanel, MessagingPanel } from "./booking-tracker";
+import { getPropertyGalleryImages } from "@/lib/site-gallery";
+import type { GuestHouse } from "@/lib/guest-house-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
 import ghLogo from "@/assets/gh-logo.jpg";
 import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
 import ghCoupleRoom from "@/assets/gh-couple-room.jpg";
+import ghSingleRoom from "@/assets/gh-single-room.jpg";
+import ghSharingRoom from "@/assets/gh-sharing-room.jpg";
 import nhCoupleRoom from "@/assets/nh-couple-room.jpg";
+import nhSingleRoom from "@/assets/nh-single-room.jpg";
+import nhSharingRoom from "@/assets/nh-sharing-room.jpg";
 import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
 import nhDining2 from "@/assets/nh-dining2.jpg";
 import ghDining from "@/assets/gh-dining.jpg";
@@ -48,12 +57,55 @@ type RoomImage = Tables<"room_images">;
 type DiningBanner = Tables<"dining_banners">;
 type MenuImageRow = Tables<"menu_images">;
 
+const EDITABLE_ROOM_TYPES = [
+  "Single Room",
+  "Couple Room",
+  "Sharing Room",
+  "Executive Room",
+  "Conference & Banqueting",
+];
+
+const DEFAULT_ROOM_IMAGE_BY_HOUSE: Record<string, Record<string, string>> = {
+  "greater-heights": {
+    "Single Room": ghSingleRoom,
+    "Couple Room": ghCoupleRoom,
+    "Sharing Room": ghSharingRoom,
+    "Executive Room": ghSingleRoom,
+    "Conference & Banqueting": ghDining,
+  },
+  "new-heights": {
+    "Single Room": nhSingleRoom,
+    "Couple Room": nhCoupleRoom,
+    "Sharing Room": nhSharingRoom,
+    "Executive Room": nhSingleRoom,
+    "Conference & Banqueting": nhDining1,
+  },
+};
+
 export const Route = createFileRoute("/admin/dashboard")({
   component: AdminDashboard,
+  beforeLoad: async () => {
+    const { data: sessionData, error } = await supabase.auth.getSession();
+    if (error || !sessionData.session) {
+      throw redirect({ to: "/admin/login" });
+    }
+
+    const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+      _user_id: sessionData.session.user.id,
+      _role: "admin",
+    });
+
+    if (roleError || !isAdmin) {
+      throw redirect({ to: "/admin/login" });
+    }
+  },
 });
 
 type Tab =
+  | "b-calendar"
   | "bookings"
+  | "b-guests"
+  | "b-messaging"
   | "reviews"
   | "gallery"
   | "contacts"
@@ -66,7 +118,7 @@ type Tab =
   | "site-images";
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>("bookings");
+  const [activeTab, setActiveTab] = useState<Tab>("b-calendar");
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [selectedHouse, setSelectedHouse] = useState<"greater-heights" | "new-heights">(
     "greater-heights",
@@ -119,8 +171,14 @@ function AdminDashboard() {
       </div>
     );
 
-  const tabs: { key: Tab; label: string; icon: typeof CalendarDays }[] = [
-    { key: "bookings", label: "Bookings", icon: CalendarDays },
+  const guestTabs: { key: Tab; label: string; icon: typeof CalendarDays }[] = [
+    { key: "b-calendar", label: "Calendar", icon: CalendarDays },
+    { key: "bookings", label: "All Bookings", icon: CalendarRange },
+    { key: "b-guests", label: "Guest Profiles", icon: Users },
+    { key: "b-messaging", label: "Messages", icon: Send },
+  ];
+
+  const contentTabs: { key: Tab; label: string; icon: typeof CalendarDays }[] = [
     { key: "reviews", label: "Reviews", icon: MessageSquare },
     { key: "gallery", label: "Gallery", icon: Image },
     { key: "contacts", label: "Contacts", icon: Phone },
@@ -132,6 +190,26 @@ function AdminDashboard() {
     { key: "menu-images", label: "Menu Images", icon: Image },
     { key: "site-images", label: "Site Images", icon: Image },
   ];
+
+  const tabs = [...guestTabs, ...contentTabs];
+  const renderTab = (tab: { key: Tab; label: string; icon: typeof CalendarDays }) => {
+    const Icon = tab.icon;
+    const isActive = activeTab === tab.key;
+    return (
+      <button
+        key={tab.key}
+        onClick={() => setActiveTab(tab.key)}
+        className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition-all whitespace-nowrap ${
+          isActive
+            ? "border-gold/40 bg-gold-dark text-warm-white shadow-md shadow-gold/15"
+            : "border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"
+        }`}
+      >
+        <Icon className="h-4 w-4" />
+        {tab.label}
+      </button>
+    );
+  };
 
   const selectedHouseLabel =
     selectedHouse === "greater-heights" ? "Greater Heights" : "New Heights";
@@ -193,26 +271,19 @@ function AdminDashboard() {
 
         <div className="mt-6 rounded-[24px] border border-border/80 bg-card/80 p-2 shadow-[0_18px_40px_rgba(30,30,30,0.06)] backdrop-blur-sm">
           <div className="overflow-x-auto">
-            <div className="flex min-w-max gap-2">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.key;
-
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition-all whitespace-nowrap ${
-                      isActive
-                        ? "border-gold/40 bg-gold-dark text-warm-white shadow-md shadow-gold/15"
-                        : "border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
-                  </button>
-                );
-              })}
+            <div className="flex flex-col gap-3">
+              <div>
+                <p className="mb-1.5 pl-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-gold-dark">
+                  Booking & Guest Tracker
+                </p>
+                <div className="flex min-w-max gap-2">{guestTabs.map(renderTab)}</div>
+              </div>
+              <div>
+                <p className="mb-1.5 pl-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                  Content Manager
+                </p>
+                <div className="flex min-w-max gap-2">{contentTabs.map(renderTab)}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -232,7 +303,10 @@ function AdminDashboard() {
           </div>
 
           <div className="p-5 md:p-6">
+            {activeTab === "b-calendar" && <CalendarPanel house={selectedHouse} />}
             {activeTab === "bookings" && <BookingsPanel house={selectedHouse} />}
+            {activeTab === "b-guests" && <GuestProfilesPanel house={selectedHouse} />}
+            {activeTab === "b-messaging" && <MessagingPanel house={selectedHouse} />}
             {activeTab === "reviews" && <ReviewsPanel house={selectedHouse} />}
             {activeTab === "gallery" && <GalleryPanel house={selectedHouse} />}
             {activeTab === "contacts" && <ContactsPanel house={selectedHouse} />}
@@ -550,6 +624,7 @@ function ContactsPanel({ house }: { house: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -568,7 +643,8 @@ function ContactsPanel({ house }: { house: string }) {
   const handleSave = async () => {
     if (!contact) return;
     setSaving(true);
-    await supabase
+    setSaveError("");
+    const { error } = await supabase
       .from("contact_settings")
       .update({
         phone: contact.phone,
@@ -578,6 +654,12 @@ function ContactsPanel({ house }: { house: string }) {
       })
       .eq("guest_house", house);
     setSaving(false);
+    if (error) {
+      setSaveError(`Contact settings could not be saved: ${error.message}`);
+      setSaved(false);
+      return;
+    }
+    window.dispatchEvent(new CustomEvent("contact-settings-updated", { detail: house }));
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -586,7 +668,10 @@ function ContactsPanel({ house }: { house: string }) {
   if (!contact) return <p className="text-sm text-muted-foreground">No contact settings found.</p>;
   return (
     <div>
-      <h2 className="font-heading text-2xl text-foreground mb-6">Contact Details</h2>
+      <h2 className="font-heading text-2xl text-foreground mb-2">Contact & Booking Destinations</h2>
+      <p className="mb-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
+        These details are used by the public call, WhatsApp, email, and booking actions for this property.
+      </p>
       <div className="bg-card border border-border p-6 max-w-lg space-y-4">
         {[
           { label: "Phone Number", key: "phone" },
@@ -599,13 +684,15 @@ function ContactsPanel({ house }: { house: string }) {
               {field.label}
             </label>
             <input
-              type="text"
+              type={field.key === "email" ? "email" : "text"}
+              inputMode={field.key === "phone" || field.key === "whatsapp" ? "tel" : undefined}
               value={contact[field.key as keyof ContactSettings] || ""}
               onChange={(e) => setContact({ ...contact, [field.key]: e.target.value })}
-              className="w-full border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:border-gold-dark"
+              className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground caret-gold focus:outline-none focus:border-gold-dark sm:px-4"
             />
           </div>
         ))}
+        {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
         <div className="flex items-center gap-3 pt-2">
           <button onClick={handleSave} disabled={saving} className="btn-gold disabled:opacity-50">
             {saving ? "Saving..." : "Save Changes"}
@@ -1185,7 +1272,7 @@ function RoomImagesPanel({ house }: { house: string }) {
       .select("room_type")
       .eq("guest_house", house)
       .order("display_order");
-    const types = [...new Set((prices || []).map((p) => p.room_type))];
+    const types = [...new Set([...EDITABLE_ROOM_TYPES, ...(prices || []).map((p) => p.room_type)])];
     setRoomTypes(types);
     // Keep the current selection only if it exists in this house's rooms,
     // otherwise fall back to the first available room type.
@@ -1203,9 +1290,14 @@ function RoomImagesPanel({ house }: { house: string }) {
     fetchData();
   }, [fetchData]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    replacePrimary = false,
+    roomType = selectedRoomType,
+  ) => {
     const file = e.target.files?.[0];
-    if (!file || !selectedRoomType) return;
+    e.target.value = "";
+    if (!file || !roomType) return;
     setUploading(true);
     const fileName = `${house}/${Date.now()}.${file.name.split(".").pop()}`;
     const { error } = await supabase.storage.from("room_images").upload(fileName, file);
@@ -1215,13 +1307,40 @@ function RoomImagesPanel({ house }: { house: string }) {
       return;
     }
     const { data: urlData } = supabase.storage.from("room_images").getPublicUrl(fileName);
-    await supabase.from("room_images").insert({
-      guest_house: house,
-      room_type: selectedRoomType,
-      image_url: urlData.publicUrl,
-      alt_text: newAlt || `${selectedRoomType} image`,
-      display_order: images.length,
-    });
+    const existingImages = images
+      .filter((image) => image.room_type === roomType)
+      .sort((a, b) => a.display_order - b.display_order);
+    const primaryImage = existingImages[0];
+    const imageAlt = newAlt || `${roomType} image`;
+
+    if (replacePrimary && primaryImage) {
+      const { error: updateError } = await supabase
+        .from("room_images")
+        .update({ image_url: urlData.publicUrl, alt_text: imageAlt, display_order: 0 })
+        .eq("id", primaryImage.id);
+      if (updateError) {
+        await supabase.storage.from("room_images").remove([fileName]);
+        alert("Could not replace primary image: " + updateError.message);
+        setUploading(false);
+        return;
+      }
+      const oldPath = primaryImage.image_url.match(/room_images\/(.+)$/)?.[1];
+      if (oldPath) await supabase.storage.from("room_images").remove([oldPath]);
+    } else {
+      const { error: insertError } = await supabase.from("room_images").insert({
+        guest_house: house,
+        room_type: roomType,
+        image_url: urlData.publicUrl,
+        alt_text: imageAlt,
+        display_order: replacePrimary ? 0 : (existingImages.at(-1)?.display_order ?? -1) + 1,
+      });
+      if (insertError) {
+        await supabase.storage.from("room_images").remove([fileName]);
+        alert("Could not save room image: " + insertError.message);
+        setUploading(false);
+        return;
+      }
+    }
     setNewAlt("");
     setUploading(false);
     fetchData();
@@ -1239,7 +1358,7 @@ function RoomImagesPanel({ house }: { house: string }) {
     <div>
       <h2 className="font-heading text-2xl text-foreground mb-6">Room Images</h2>
       <p className="text-xs text-muted-foreground mb-6">
-        Upload additional images for each room type. These will appear in the room detail modal.
+        Replace the primary image shown on room cards and the accommodation hero, or add more photos for the room gallery.
       </p>
       <div className="bg-cream border border-border p-6 mb-8">
         <h3 className="text-sm font-semibold text-foreground mb-4">Upload New Room Image</h3>
@@ -1277,17 +1396,33 @@ function RoomImagesPanel({ house }: { house: string }) {
           </label>
         </div>
       </div>
-      {images.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No room images yet.</p>
-      ) : (
+      {roomTypes.length > 0 && (
         <div className="space-y-6">
           {roomTypes.map((type) => {
             const typeImages = images.filter((img) => img.room_type === type);
-            if (typeImages.length === 0) return null;
+            const primaryImage = [...typeImages].sort((a, b) => a.display_order - b.display_order)[0];
+            const previewImage = primaryImage?.image_url || DEFAULT_ROOM_IMAGE_BY_HOUSE[house]?.[type] || ghExterior;
             return (
               <div key={type}>
-                <h3 className="text-sm font-semibold text-foreground mb-3 capitalize">{type}</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground capitalize">{type}</h3>
+                    <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {primaryImage ? "Custom primary image" : "Built-in image in use"}
+                    </p>
+                  </div>
+                  <label className={`btn-gold inline-flex cursor-pointer items-center gap-2 px-4 py-2 text-[10px] ${uploading ? "pointer-events-none opacity-50" : ""}`}>
+                    <Upload className="h-3.5 w-3.5" /> Replace Primary
+                    <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(event) => handleUpload(event, true, type)} />
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  {typeImages.length === 0 && (
+                    <div className="overflow-hidden border border-border bg-card">
+                      <img src={previewImage} alt={`${type} built-in image`} className="h-32 w-full object-cover" />
+                      <p className="p-2 text-[10px] text-muted-foreground">Built-in fallback</p>
+                    </div>
+                  )}
                   {typeImages.map((img) => (
                     <div
                       key={img.id}
@@ -1731,11 +1866,6 @@ type SiteImageSlot = {
 // Slots shared by both guest houses (landing page & logos).
 const SHARED_SITE_IMAGE_SLOTS: SiteImageSlot[] = [
   {
-    key: "landing.hero",
-    label: "Landing Page Hero",
-    description: "Full-width background photo on the welcome / property-select page.",
-  },
-  {
     key: "landing.card.greater-heights",
     label: "Landing Card — Greater Heights",
     description: "Photo on the Greater Heights property card.",
@@ -1744,6 +1874,21 @@ const SHARED_SITE_IMAGE_SLOTS: SiteImageSlot[] = [
     key: "landing.card.new-heights",
     label: "Landing Card — New Heights",
     description: "Photo on the New Heights property card.",
+  },
+  {
+    key: "about.hero",
+    label: "About Slideshow — Greater Heights Exterior",
+    description: "First image in the About page slideshow.",
+  },
+  {
+    key: "about.slide.2",
+    label: "About Slideshow — Greater Heights Room",
+    description: "Second image in the About page slideshow.",
+  },
+  {
+    key: "about.slide.3",
+    label: "About Slideshow — New Heights Exterior",
+    description: "Third image in the About page slideshow.",
   },
   {
     key: "logo.greater-heights",
@@ -1767,7 +1912,6 @@ const HOUSE_SITE_IMAGE_SLOTS: SiteImageSlot[] = [
     description: "Photos shown beside the welcome text on the home page. Add as many as you like.",
   },
   { key: "{house}.home.dining_cta", label: "Home Dining Banner" },
-  { key: "{house}.about.hero", label: "About Page Hero" },
   { key: "{house}.dining.hero", label: "Dining Page Hero" },
   { key: "{house}.dining.interior", label: "Dining Interior Photo" },
   {
@@ -1783,21 +1927,23 @@ const SITE_IMAGES_BUCKET = "site_images";
 
 function getDefaultSiteImageForSlot(slotKey: string): string {
   switch (slotKey) {
-    case "landing.hero":
-      return ghExterior;
     case "landing.card.greater-heights":
       return ghExterior;
     case "landing.card.new-heights":
+      return nhExterior1;
+    case "about.hero":
+      return ghExterior;
+    case "about.slide.2":
+      return ghCoupleRoom;
+    case "about.slide.3":
       return nhExterior1;
     case "logo.greater-heights":
       return ghLogo;
     case "logo.new-heights":
       return nhLogo;
     case "greater-heights.home.hero":
-    case "greater-heights.about.hero":
       return ghExterior;
     case "new-heights.home.hero":
-    case "new-heights.about.hero":
       return nhExterior1;
     case "greater-heights.home.welcome":
       return ghCoupleRoom;
@@ -1819,9 +1965,14 @@ function getDefaultSiteImageForSlot(slotKey: string): string {
       return ghDining;
     case "new-heights.dining.meals":
       return nhDining1;
-    default:
-      return ghExterior;
   }
+  const galleryMatch = slotKey.match(/^(greater-heights|new-heights)\.gallery\.(.+)$/);
+  if (galleryMatch) {
+    return getPropertyGalleryImages(galleryMatch[1] as GuestHouse).find(
+      (image) => image.key === galleryMatch[2],
+    )?.src || ghExterior;
+  }
+  return ghExterior;
 }
 
 function siteImagePathFromUrl(url: string): string | null {
@@ -1863,6 +2014,11 @@ function SiteImagesPanel({ house }: { house: string }) {
     setLoading(false);
   }, []);
 
+  const reloadAndPublish = useCallback(() => {
+    void reload();
+    window.dispatchEvent(new Event("site-images-updated"));
+  }, [reload]);
+
   useEffect(() => {
     reload();
   }, [reload]);
@@ -1893,7 +2049,7 @@ function SiteImagesPanel({ house }: { house: string }) {
                 slot={slot}
                 slotKey={slot.key}
                 rows={rows}
-                onChange={reload}
+                onChange={reloadAndPublish}
               />
             ))}
           </div>
@@ -1910,7 +2066,20 @@ function SiteImagesPanel({ house }: { house: string }) {
                 slot={slot}
                 slotKey={slot.key.replace("{house}", house)}
                 rows={rows}
-                onChange={reload}
+                onChange={reloadAndPublish}
+              />
+            ))}
+            {getPropertyGalleryImages(house as GuestHouse).map((image) => (
+              <SiteImageSlotEditor
+                key={`${house}.gallery.${image.key}`}
+                slot={{
+                  key: `${house}.gallery.${image.key}`,
+                  label: `Gallery — ${image.alt}`,
+                  description: `Default ${image.category.toLowerCase()} image shown in the ${houseName} gallery. Replace it here or reset it to the built-in photo.`,
+                }}
+                slotKey={`${house}.gallery.${image.key}`}
+                rows={rows}
+                onChange={reloadAndPublish}
               />
             ))}
           </div>

@@ -2,12 +2,25 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
+function getRuntimeEnvValue(key: string): string | undefined {
+  const viteValue = import.meta.env?.[key];
+  if (viteValue) return String(viteValue);
+
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+
+  return undefined;
+}
+
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const SUPABASE_URL =
+    getRuntimeEnvValue("VITE_SUPABASE_URL") || getRuntimeEnvValue("SUPABASE_URL");
   const SUPABASE_PUBLISHABLE_KEY =
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+    getRuntimeEnvValue("VITE_SUPABASE_PUBLISHABLE_KEY") ||
+    getRuntimeEnvValue("SUPABASE_PUBLISHABLE_KEY");
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     throw new Error(

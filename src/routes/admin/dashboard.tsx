@@ -18,6 +18,7 @@ import {
   Send,
   Users,
   Home,
+  BedDouble,
   Tag,
   UtensilsCrossed,
   DollarSign,
@@ -32,8 +33,8 @@ import { getPropertyGalleryImages } from "@/lib/site-gallery";
 import type { GuestHouse } from "@/lib/guest-house-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
-import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
+import ghLogo from "@/assets/gh-logo-replacement.webp";
+import nhLogo from "@/assets/nh-logo-replacement.webp";
 import ghCoupleRoom from "@/assets/gh-couple-room.jpg";
 import ghSingleRoom from "@/assets/gh-single-room.jpg";
 import ghSharingRoom from "@/assets/gh-sharing-room.jpg";
@@ -106,18 +107,17 @@ type Tab =
   | "b-guests"
   | "b-messaging"
   | "reviews"
-  | "gallery"
   | "contacts"
   | "promotions"
   | "menus"
   | "prices"
-  | "room-images"
-  | "dining-banners"
-  | "menu-images"
-  | "site-images";
+  | "images";
+
+type ImageCategory = "pages" | "dining" | "rooms" | "logos" | "gallery";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("b-calendar");
+  const [activeImageCategory, setActiveImageCategory] = useState<ImageCategory>("pages");
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [selectedHouse, setSelectedHouse] = useState<"greater-heights" | "new-heights">(
     "greater-heights",
@@ -179,15 +179,11 @@ function AdminDashboard() {
 
   const contentTabs: { key: Tab; label: string; icon: typeof CalendarDays }[] = [
     { key: "reviews", label: "Reviews", icon: MessageSquare },
-    { key: "gallery", label: "Gallery", icon: Image },
     { key: "contacts", label: "Contacts", icon: Phone },
     { key: "promotions", label: "Promos", icon: Tag },
     { key: "menus", label: "Menus", icon: UtensilsCrossed },
     { key: "prices", label: "Prices", icon: DollarSign },
-    { key: "room-images", label: "Room Images", icon: Image },
-    { key: "dining-banners", label: "Dining Banners", icon: Image },
-    { key: "menu-images", label: "Menu Images", icon: Image },
-    { key: "site-images", label: "Site Images", icon: Image },
+    { key: "images", label: "Images", icon: Image },
   ];
 
   const tabs = [...guestTabs, ...contentTabs];
@@ -307,18 +303,107 @@ function AdminDashboard() {
             {activeTab === "b-guests" && <GuestProfilesPanel house={selectedHouse} />}
             {activeTab === "b-messaging" && <MessagingPanel house={selectedHouse} />}
             {activeTab === "reviews" && <ReviewsPanel house={selectedHouse} />}
-            {activeTab === "gallery" && <GalleryPanel house={selectedHouse} />}
             {activeTab === "contacts" && <ContactsPanel house={selectedHouse} />}
             {activeTab === "promotions" && <PromotionsPanel house={selectedHouse} />}
             {activeTab === "menus" && <MenusPanel house={selectedHouse} />}
             {activeTab === "prices" && <PricesPanel house={selectedHouse} />}
-            {activeTab === "room-images" && <RoomImagesPanel house={selectedHouse} />}
-            {activeTab === "dining-banners" && <DiningBannersPanel house={selectedHouse} />}
-            {activeTab === "menu-images" && <MenuImagesPanel house={selectedHouse} />}
-            {activeTab === "site-images" && <SiteImagesPanel house={selectedHouse} />}
+            {activeTab === "images" && (
+              <ImageManagementPanel
+                house={selectedHouse}
+                category={activeImageCategory}
+                onCategoryChange={setActiveImageCategory}
+              />
+            )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ImageManagementPanel({
+  house,
+  category,
+  onCategoryChange,
+}: {
+  house: string;
+  category: ImageCategory;
+  onCategoryChange: (category: ImageCategory) => void;
+}) {
+  const [diningSection, setDiningSection] = useState<"meals" | "banners" | "menus">("meals");
+  const categories: { key: ImageCategory; label: string; icon: typeof Image }[] = [
+    { key: "pages", label: "Page Images", icon: Home },
+    { key: "dining", label: "Dining", icon: UtensilsCrossed },
+    { key: "rooms", label: "Accommodation", icon: BedDouble },
+    { key: "logos", label: "Property Logos", icon: Image },
+    { key: "gallery", label: "Gallery", icon: Image },
+  ];
+
+  return (
+    <div>
+      <nav
+        aria-label="Image categories"
+        className="mb-6 flex flex-wrap gap-2 border-b border-border pb-4"
+      >
+        {categories.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onCategoryChange(key)}
+            aria-current={category === key ? "page" : undefined}
+            className={`inline-flex items-center gap-2 border-b-2 px-3 py-2 text-sm transition-colors ${
+              category === key
+                ? "border-gold-dark text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </nav>
+      {category === "pages" && <SiteImagesPanel house={house} category="pages" />}
+      {category === "dining" && (
+        <div>
+          <div className="mb-5 flex flex-wrap gap-2" aria-label="Dining image type">
+            {[
+              ["meals", "Breakfast, Lunch & Dinner"],
+              ["banners", "Dining Slides"],
+              ["menus", "Menu Uploads"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setDiningSection(key as "meals" | "banners" | "menus")}
+                aria-pressed={diningSection === key}
+                className={`border px-3 py-2 text-xs transition-colors ${
+                  diningSection === key
+                    ? "border-gold-dark bg-gold-dark text-white"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {diningSection === "meals" && <SiteImagesPanel house={house} category="dining" />}
+          {diningSection === "banners" && <DiningBannersPanel house={house} />}
+          {diningSection === "menus" && <MenuImagesPanel house={house} />}
+        </div>
+      )}
+      {category === "rooms" && (
+        <div className="space-y-8">
+          <SiteImagesPanel house={house} category="rooms" />
+          <RoomImagesPanel house={house} />
+        </div>
+      )}
+      {category === "logos" && <SiteImagesPanel house={house} category="logos" />}
+      {category === "gallery" && (
+        <div className="space-y-8">
+          <SiteImagesPanel house={house} category="gallery" />
+          <GalleryPanel house={house} />
+        </div>
+      )}
     </div>
   );
 }
@@ -496,12 +581,27 @@ function ReviewsPanel({ house }: { house: string }) {
 }
 
 /* ==================== GALLERY ==================== */
+const GALLERY_CATEGORY_OPTIONS = ["Exterior", "Interior", "Rooms", "Dining"] as const;
+
+type GalleryUploadCategory = (typeof GALLERY_CATEGORY_OPTIONS)[number];
+
+function normalizeGalleryCategory(category: string | null | undefined): string {
+  const value = (category || "").trim();
+  if (!value) return "General";
+  const normalized = value.toLowerCase();
+  if (["exterior", "outside"].includes(normalized)) return "Exterior";
+  if (["interior", "inside"].includes(normalized)) return "Interior";
+  if (["room", "rooms", "accommodation"].includes(normalized)) return "Rooms";
+  if (["dining", "restaurant", "food"].includes(normalized)) return "Dining";
+  return value;
+}
+
 function GalleryPanel({ house }: { house: string }) {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<GalleryUploadCategory>("Exterior");
   const [newAlt, setNewAlt] = useState("");
-  const [newCategory, setNewCategory] = useState("General");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -510,36 +610,48 @@ function GalleryPanel({ house }: { house: string }) {
       .select("*")
       .eq("guest_house", house)
       .order("display_order");
-    setImages(data || []);
+    setImages((data || []).filter((row) => row.category !== null));
     setLoading(false);
   }, [house]);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  const visibleImages = images.filter(
+    (img) => normalizeGalleryCategory(img.category) === selectedCategory,
+  );
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !newAlt) return;
+    if (!file) return;
+
     setUploading(true);
-    const fileName = `${house}/${Date.now()}.${file.name.split(".").pop()}`;
+    const fileName = `${house}/gallery/${selectedCategory.toLowerCase()}/${Date.now()}.${file.name.split(".").pop()}`;
     const { error } = await supabase.storage.from("gallery").upload(fileName, file);
     if (error) {
       alert("Upload failed: " + error.message);
       setUploading(false);
       return;
     }
+
     const { data: urlData } = supabase.storage.from("gallery").getPublicUrl(fileName);
-    await supabase.from("gallery_images").insert({
+    const { error: insertError } = await supabase.from("gallery_images").insert({
       guest_house: house,
       image_url: urlData.publicUrl,
-      alt_text: newAlt,
-      category: newCategory,
-      display_order: images.length,
+      alt_text: newAlt || `${selectedCategory} photo`,
+      category: selectedCategory,
+      display_order: visibleImages.length,
     });
+
+    if (insertError) {
+      alert("Gallery image could not be saved: " + insertError.message);
+    }
+
     setNewAlt("");
-    setNewCategory("General");
     setUploading(false);
-    fetchData();
+    await fetchData();
+    e.target.value = "";
   };
 
   const deleteImage = async (id: string, imageUrl: string) => {
@@ -550,11 +662,21 @@ function GalleryPanel({ house }: { house: string }) {
   };
 
   if (loading) return <p className="text-muted-foreground text-sm">Loading...</p>;
+
   return (
     <div>
-      <h2 className="font-heading text-2xl text-foreground mb-6">Manage Gallery</h2>
+      <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="font-heading text-2xl text-foreground">Gallery Images</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage the {house === "greater-heights" ? "Greater Heights" : "New Heights"} gallery for
+            each category.
+          </p>
+        </div>
+      </div>
+
       <div className="bg-cream border border-border p-6 mb-8">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Upload New Image</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-4">Upload to Category</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input
             type="text"
@@ -564,18 +686,18 @@ function GalleryPanel({ house }: { house: string }) {
             className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
           />
           <select
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value as GalleryUploadCategory)}
             className="border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:border-gold-dark"
           >
-            {["General", "Rooms", "Facilities", "Dining", "Exterior", "Interior"].map((c) => (
-              <option key={c} value={c}>
-                {c}
+            {GALLERY_CATEGORY_OPTIONS.map((category) => (
+              <option key={category} value={category}>
+                {category}
               </option>
             ))}
           </select>
           <label
-            className={`btn-gold flex items-center justify-center gap-2 cursor-pointer ${uploading || !newAlt ? "opacity-50 pointer-events-none" : ""}`}
+            className={`btn-gold flex items-center justify-center gap-2 cursor-pointer ${uploading ? "opacity-50 pointer-events-none" : ""}`}
           >
             <Upload className="h-4 w-4" />
             {uploading ? "Uploading..." : "Choose & Upload"}
@@ -584,16 +706,36 @@ function GalleryPanel({ house }: { house: string }) {
               accept="image/*"
               onChange={handleUpload}
               className="hidden"
-              disabled={uploading || !newAlt}
+              disabled={uploading}
             />
           </label>
         </div>
       </div>
-      {images.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No gallery images yet.</p>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {GALLERY_CATEGORY_OPTIONS.map((category) => (
+          <button
+            key={category}
+            type="button"
+            onClick={() => setSelectedCategory(category)}
+            className={`border px-3 py-2 text-xs uppercase tracking-[0.12em] transition-colors ${
+              selectedCategory === category
+                ? "border-gold-dark bg-gold-dark text-white"
+                : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
+      {visibleImages.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No {selectedCategory.toLowerCase()} images uploaded yet.
+        </p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((img) => (
+          {visibleImages.map((img) => (
             <div
               key={img.id}
               className="relative group bg-card border border-border overflow-hidden"
@@ -601,7 +743,9 @@ function GalleryPanel({ house }: { house: string }) {
               <img src={img.image_url} alt={img.alt_text} className="w-full h-40 object-cover" />
               <div className="p-3">
                 <p className="text-xs font-medium text-foreground truncate">{img.alt_text}</p>
-                <p className="text-[10px] text-muted-foreground">{img.category}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {normalizeGalleryCategory(img.category)}
+                </p>
               </div>
               <button
                 onClick={() => deleteImage(img.id, img.image_url)}
@@ -669,7 +813,8 @@ function ContactsPanel({ house }: { house: string }) {
     <div>
       <h2 className="font-heading text-2xl text-foreground mb-2">Contact & Booking Destinations</h2>
       <p className="mb-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
-        These details are used by the public call, WhatsApp, email, and booking actions for this property.
+        These details are used by the public call, WhatsApp, email, and booking actions for this
+        property.
       </p>
       <div className="bg-card border border-border p-6 max-w-lg space-y-4">
         {[
@@ -691,7 +836,11 @@ function ContactsPanel({ house }: { house: string }) {
             />
           </div>
         ))}
-        {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
+        {saveError && (
+          <p role="alert" className="text-sm text-destructive">
+            {saveError}
+          </p>
+        )}
         <div className="flex items-center gap-3 pt-2">
           <button onClick={handleSave} disabled={saving} className="btn-gold disabled:opacity-50">
             {saving ? "Saving..." : "Save Changes"}
@@ -929,14 +1078,62 @@ function MenusPanel({ house }: { house: string }) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "", price: "", category: "breakfast" });
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "breakfast",
+    image_url: "",
+  });
+  const [uploadingFormImage, setUploadingFormImage] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
     price: "",
     category: "breakfast",
+    image_url: "",
   });
+  const [uploadingEditImage, setUploadingEditImage] = useState(false);
+
+  const uploadMenuItemImage = async (file: File): Promise<string | null> => {
+    const extension = file.name.split(".").pop() || "jpg";
+    const path = `${house}/items/${Date.now()}.${extension}`;
+    const { error } = await supabase.storage.from("menus").upload(path, file);
+    if (error) {
+      alert(`Image upload failed: ${error.message}`);
+      return null;
+    }
+    return supabase.storage.from("menus").getPublicUrl(path).data.publicUrl;
+  };
+
+  const removeMenuItemImageFile = async (url: string) => {
+    const marker = "/object/public/menus/";
+    const markerIndex = url.indexOf(marker);
+    if (markerIndex >= 0) {
+      await supabase.storage.from("menus").remove([url.slice(markerIndex + marker.length)]);
+    }
+  };
+
+  const handleAddImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    setUploadingFormImage(true);
+    const url = await uploadMenuItemImage(file);
+    if (url) setForm((current) => ({ ...current, image_url: url }));
+    setUploadingFormImage(false);
+  };
+
+  const handleEditImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    setUploadingEditImage(true);
+    const url = await uploadMenuItemImage(file);
+    if (url) setEditForm((current) => ({ ...current, image_url: url }));
+    setUploadingEditImage(false);
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -955,10 +1152,17 @@ function MenusPanel({ house }: { house: string }) {
 
   const handleAdd = async () => {
     if (!form.name || !form.price) return;
-    await supabase
-      .from("menu_items")
-      .insert({ ...form, guest_house: house, display_order: items.length });
-    setForm({ name: "", description: "", price: "", category: "breakfast" });
+    const { error } = await supabase.from("menu_items").insert({
+      ...form,
+      image_url: form.image_url || null,
+      guest_house: house,
+      display_order: items.length,
+    });
+    if (error) {
+      alert(`Menu item could not be saved: ${error.message}`);
+      return;
+    }
+    setForm({ name: "", description: "", price: "", category: "breakfast", image_url: "" });
     setShowForm(false);
     fetchData();
   };
@@ -970,16 +1174,34 @@ function MenusPanel({ house }: { house: string }) {
       description: item.description,
       price: item.price,
       category: item.category,
+      image_url: item.image_url || "",
     });
   };
   const saveEdit = async () => {
     if (!editingId) return;
-    await supabase.from("menu_items").update(editForm).eq("id", editingId);
+    const currentItem = items.find((item) => item.id === editingId);
+    const { error } = await supabase
+      .from("menu_items")
+      .update({ ...editForm, image_url: editForm.image_url || null })
+      .eq("id", editingId);
+    if (error) {
+      alert(`Menu item could not be updated: ${error.message}`);
+      return;
+    }
+    if (currentItem?.image_url && currentItem.image_url !== editForm.image_url) {
+      await removeMenuItemImageFile(currentItem.image_url);
+    }
     setEditingId(null);
     fetchData();
   };
   const deleteItem = async (id: string) => {
-    await supabase.from("menu_items").delete().eq("id", id);
+    const item = items.find((row) => row.id === id);
+    const { error } = await supabase.from("menu_items").delete().eq("id", id);
+    if (error) {
+      alert(`Menu item could not be deleted: ${error.message}`);
+      return;
+    }
+    if (item?.image_url) await removeMenuItemImageFile(item.image_url);
     fetchData();
   };
 
@@ -1034,9 +1256,38 @@ function MenusPanel({ house }: { house: string }) {
               </option>
             ))}
           </select>
-          <button onClick={handleAdd} className="btn-gold text-xs">
-            Save Item
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            {form.image_url && (
+              <img src={form.image_url} alt="New menu item" className="h-16 w-20 object-cover" />
+            )}
+            <label className="btn-gold inline-flex cursor-pointer items-center gap-2 text-xs">
+              <Upload className="h-3 w-3" />
+              {uploadingFormImage ? "Uploading..." : form.image_url ? "Change Image" : "Add Image"}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAddImage}
+                className="hidden"
+                disabled={uploadingFormImage}
+              />
+            </label>
+            {form.image_url && (
+              <button
+                type="button"
+                onClick={() => setForm((current) => ({ ...current, image_url: "" }))}
+                className="text-xs text-red-700 underline"
+              >
+                Remove image
+              </button>
+            )}
+            <button
+              onClick={handleAdd}
+              disabled={uploadingFormImage}
+              className="btn-gold text-xs disabled:opacity-50"
+            >
+              Save Item
+            </button>
+          </div>
         </div>
       )}
 
@@ -1070,10 +1321,44 @@ function MenusPanel({ house }: { house: string }) {
                         onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                         className="w-full border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-gold-dark"
                       />
+                      <div className="flex flex-wrap items-center gap-3">
+                        {editForm.image_url && (
+                          <img
+                            src={editForm.image_url}
+                            alt={`${editForm.name || "Menu item"} preview`}
+                            className="h-16 w-20 object-cover"
+                          />
+                        )}
+                        <label className="inline-flex cursor-pointer items-center gap-2 border border-border px-3 py-2 text-xs text-foreground">
+                          <Upload className="h-3 w-3" />
+                          {uploadingEditImage
+                            ? "Uploading..."
+                            : editForm.image_url
+                              ? "Change Image"
+                              : "Add Image"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleEditImage}
+                            className="hidden"
+                            disabled={uploadingEditImage}
+                          />
+                        </label>
+                        {editForm.image_url && (
+                          <button
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm, image_url: "" })}
+                            className="text-xs text-red-700 underline"
+                          >
+                            Remove image
+                          </button>
+                        )}
+                      </div>
                       <div className="flex gap-2">
                         <button
                           onClick={saveEdit}
-                          className="text-xs px-3 py-1.5 bg-green-600 text-white flex items-center gap-1"
+                          disabled={uploadingEditImage}
+                          className="text-xs px-3 py-1.5 bg-green-600 text-white flex items-center gap-1 disabled:opacity-50"
                         >
                           <Save className="h-3 w-3" /> Save
                         </button>
@@ -1086,10 +1371,23 @@ function MenusPanel({ house }: { house: string }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-sm font-semibold text-foreground">{item.name}</h4>
-                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            className="h-14 w-16 shrink-0 object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-16 shrink-0 items-center justify-center bg-muted text-[9px] text-muted-foreground">
+                            No image
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-semibold text-foreground">{item.name}</h4>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-semibold text-gold-dark">{item.price}</span>
@@ -1363,7 +1661,8 @@ function RoomImagesPanel({ house }: { house: string }) {
     <div>
       <h2 className="font-heading text-2xl text-foreground mb-6">Room Images</h2>
       <p className="text-xs text-muted-foreground mb-6">
-        Replace the primary image shown on room cards and the accommodation hero, or add more photos for the room gallery.
+        Replace the primary image shown on room cards and the accommodation hero, or add more photos
+        for the room gallery.
       </p>
       <div className="bg-cream border border-border p-6 mb-8">
         <h3 className="text-sm font-semibold text-foreground mb-4">Upload New Room Image</h3>
@@ -1405,8 +1704,11 @@ function RoomImagesPanel({ house }: { house: string }) {
         <div className="space-y-6">
           {roomTypes.map((type) => {
             const typeImages = images.filter((img) => img.room_type === type);
-            const primaryImage = [...typeImages].sort((a, b) => a.display_order - b.display_order)[0];
-            const previewImage = primaryImage?.image_url || DEFAULT_ROOM_IMAGE_BY_HOUSE[house]?.[type] || ghExterior;
+            const primaryImage = [...typeImages].sort(
+              (a, b) => a.display_order - b.display_order,
+            )[0];
+            const previewImage =
+              primaryImage?.image_url || DEFAULT_ROOM_IMAGE_BY_HOUSE[house]?.[type] || ghExterior;
             return (
               <div key={type}>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -1416,15 +1718,27 @@ function RoomImagesPanel({ house }: { house: string }) {
                       {primaryImage ? "Custom primary image" : "Built-in image in use"}
                     </p>
                   </div>
-                  <label className={`btn-gold inline-flex cursor-pointer items-center gap-2 px-4 py-2 text-[10px] ${uploading ? "pointer-events-none opacity-50" : ""}`}>
+                  <label
+                    className={`btn-gold inline-flex cursor-pointer items-center gap-2 px-4 py-2 text-[10px] ${uploading ? "pointer-events-none opacity-50" : ""}`}
+                  >
                     <Upload className="h-3.5 w-3.5" /> Replace Primary
-                    <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(event) => handleUpload(event, true, type)} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(event) => handleUpload(event, true, type)}
+                    />
                   </label>
                 </div>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                   {typeImages.length === 0 && (
                     <div className="overflow-hidden border border-border bg-card">
-                      <img src={previewImage} alt={`${type} built-in image`} className="h-32 w-full object-cover" />
+                      <img
+                        src={previewImage}
+                        alt={`${type} built-in image`}
+                        className="h-32 w-full object-cover"
+                      />
                       <p className="p-2 text-[10px] text-muted-foreground">Built-in fallback</p>
                     </div>
                   )}
@@ -1866,6 +2180,7 @@ type SiteImageSlot = {
   label: string;
   description?: string;
   multi?: boolean;
+  category: ImageCategory;
 };
 
 // Slots shared by both guest houses (landing page & logos).
@@ -1874,57 +2189,93 @@ const SHARED_SITE_IMAGE_SLOTS: SiteImageSlot[] = [
     key: "landing.card.greater-heights",
     label: "Landing Card — Greater Heights",
     description: "Photo on the Greater Heights property card.",
+    category: "pages",
   },
   {
     key: "landing.card.new-heights",
     label: "Landing Card — New Heights",
     description: "Photo on the New Heights property card.",
+    category: "pages",
   },
   {
     key: "about.hero",
     label: "About Slideshow — Greater Heights Exterior",
     description: "First image in the About page slideshow.",
+    category: "pages",
   },
   {
     key: "about.slide.2",
     label: "About Slideshow — Greater Heights Room",
     description: "Second image in the About page slideshow.",
+    category: "pages",
   },
   {
     key: "about.slide.3",
     label: "About Slideshow — New Heights Exterior",
     description: "Third image in the About page slideshow.",
+    category: "pages",
   },
   {
     key: "logo.greater-heights",
     label: "Logo — Greater Heights",
     description: "Shown in the website navbar and footer.",
+    category: "logos",
   },
   {
     key: "logo.new-heights",
     label: "Logo — New Heights",
     description: "Shown in the website navbar and footer.",
+    category: "logos",
   },
 ];
 
 // Per-property slots. "{house}" is replaced with the selected house id.
 const HOUSE_SITE_IMAGE_SLOTS: SiteImageSlot[] = [
-  { key: "{house}.home.hero", label: "Home Page Hero" },
+  { key: "{house}.home.hero", label: "Home Page Hero", category: "pages" },
   {
-    key: "{house}.home.welcome",
-    label: "Welcome Gallery",
-    multi: true,
-    description: "Photos shown beside the welcome text on the home page. Add as many as you like.",
+    key: "{house}.accommodation.hero",
+    label: "Accommodation Page Hero",
+    description: "The main image at the top of the accommodation page.",
+    category: "rooms",
   },
-  { key: "{house}.home.dining_cta", label: "Home Dining Banner" },
-  { key: "{house}.dining.hero", label: "Dining Page Hero" },
-  { key: "{house}.dining.interior", label: "Dining Interior Photo" },
   {
-    key: "{house}.dining.meals",
-    label: "Dining Food Gallery",
-    multi: true,
-    description:
-      "Photos shown next to the breakfast, lunch and dinner menus. Add one per meal or more.",
+    key: "{house}.gallery.hero",
+    label: "Gallery Page Hero",
+    description: "The full-width image at the top of this property's gallery page.",
+    category: "gallery",
+  },
+  {
+    key: "{house}.home.welcome.1",
+    label: "Home Welcome Image 1",
+    description: "First image shown beside the welcome text on the home page.",
+    category: "pages",
+  },
+  {
+    key: "{house}.home.welcome.2",
+    label: "Home Welcome Image 2",
+    description: "Second image shown beside the welcome text on the home page.",
+    category: "pages",
+  },
+  { key: "{house}.home.dining_cta", label: "Home Dining Banner", category: "pages" },
+  { key: "{house}.dining.hero", label: "Dining Page Hero", category: "dining" },
+  { key: "{house}.dining.interior", label: "Dining Interior Photo", category: "dining" },
+  {
+    key: "{house}.dining.meals.1",
+    label: "Breakfast Image",
+    description: "Image shown beside the breakfast menu.",
+    category: "dining",
+  },
+  {
+    key: "{house}.dining.meals.2",
+    label: "Lunch Image",
+    description: "Image shown beside the lunch menu.",
+    category: "dining",
+  },
+  {
+    key: "{house}.dining.meals.3",
+    label: "Dinner Image",
+    description: "Image shown beside the dinner menu.",
+    category: "dining",
   },
 ];
 
@@ -1950,6 +2301,14 @@ function getDefaultSiteImageForSlot(slotKey: string): string {
       return ghExterior;
     case "new-heights.home.hero":
       return nhExterior1;
+    case "greater-heights.accommodation.hero":
+      return ghCoupleRoom;
+    case "new-heights.accommodation.hero":
+      return nhCoupleRoom;
+    case "greater-heights.gallery.hero":
+      return ghExterior;
+    case "new-heights.gallery.hero":
+      return nhExterior1;
     case "greater-heights.home.welcome":
       return ghCoupleRoom;
     case "new-heights.home.welcome":
@@ -1966,16 +2325,26 @@ function getDefaultSiteImageForSlot(slotKey: string): string {
       return diningInterior;
     case "new-heights.dining.interior":
       return diningInterior;
-    case "greater-heights.dining.meals":
-      return ghDining;
-    case "new-heights.dining.meals":
+    case "greater-heights.dining.meals.1":
+      return ghOutdoorDining;
+    case "greater-heights.dining.meals.2":
+      return ghOutdoorDining;
+    case "greater-heights.dining.meals.3":
+      return diningInterior;
+    case "new-heights.dining.meals.1":
       return nhDining1;
+    case "new-heights.dining.meals.2":
+      return nhDining2;
+    case "new-heights.dining.meals.3":
+      return diningInterior;
   }
   const galleryMatch = slotKey.match(/^(greater-heights|new-heights)\.gallery\.(.+)$/);
   if (galleryMatch) {
-    return getPropertyGalleryImages(galleryMatch[1] as GuestHouse).find(
-      (image) => image.key === galleryMatch[2],
-    )?.src || ghExterior;
+    return (
+      getPropertyGalleryImages(galleryMatch[1] as GuestHouse).find(
+        (image) => image.key === galleryMatch[2],
+      )?.src || ghExterior
+    );
   }
   return ghExterior;
 }
@@ -2004,7 +2373,7 @@ async function uploadSiteImageFile(slotKey: string, file: File): Promise<string 
   return data.publicUrl;
 }
 
-function SiteImagesPanel({ house }: { house: string }) {
+function SiteImagesPanel({ house, category }: { house: string; category: ImageCategory }) {
   const [rows, setRows] = useState<SiteImageRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -2031,64 +2400,49 @@ function SiteImagesPanel({ house }: { house: string }) {
   if (loading) return <p className="text-sm text-muted-foreground">Loading site images...</p>;
 
   const houseName = house === "greater-heights" ? "Greater Heights" : "New Heights";
+  const sharedSlots = SHARED_SITE_IMAGE_SLOTS.filter((slot) => slot.category === category);
+  const houseSlots = HOUSE_SITE_IMAGE_SLOTS.filter((slot) => slot.category === category);
+  const heading =
+    category === "logos"
+      ? "Property Logos"
+      : category === "dining"
+        ? "Dining Photos"
+        : category === "rooms"
+          ? "Accommodation Hero"
+          : category === "gallery"
+            ? "Gallery Hero"
+            : "Page Images";
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-3xl border border-gold/20 bg-gradient-to-r from-gold/8 to-transparent p-5">
-        <h2 className="font-heading text-2xl text-foreground">Site Images</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          These are the live image slots used across the public website. Upload a replacement, edit
-          the alt text, reorder gallery photos, or reset any slot back to its default asset.
+    <div>
+      <div className="mb-5 border-b border-border pb-4">
+        <h2 className="font-heading text-xl text-foreground">{heading}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {category === "logos"
+            ? "Editing logos used across the whole website."
+            : `Editing ${houseName} ${heading.toLowerCase()}.`}{" "}
+          Upload a replacement or restore the built-in image.
         </p>
       </div>
-
-      <div className="space-y-6">
-        <div>
-          <h3 className="mb-3 border-b border-border pb-2 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            Shared across the whole website
-          </h3>
-          <div className="space-y-4">
-            {SHARED_SITE_IMAGE_SLOTS.map((slot) => (
-              <SiteImageSlotEditor
-                key={slot.key}
-                slot={slot}
-                slotKey={slot.key}
-                rows={rows}
-                onChange={reloadAndPublish}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h3 className="mb-3 border-b border-border pb-2 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            {houseName} pages
-          </h3>
-          <div className="space-y-4">
-            {HOUSE_SITE_IMAGE_SLOTS.map((slot) => (
-              <SiteImageSlotEditor
-                key={`${house}-${slot.key}`}
-                slot={slot}
-                slotKey={slot.key.replace("{house}", house)}
-                rows={rows}
-                onChange={reloadAndPublish}
-              />
-            ))}
-            {getPropertyGalleryImages(house as GuestHouse).map((image) => (
-              <SiteImageSlotEditor
-                key={`${house}.gallery.${image.key}`}
-                slot={{
-                  key: `${house}.gallery.${image.key}`,
-                  label: `Gallery — ${image.alt}`,
-                  description: `Default ${image.category.toLowerCase()} image shown in the ${houseName} gallery. Replace it here or reset it to the built-in photo.`,
-                }}
-                slotKey={`${house}.gallery.${image.key}`}
-                rows={rows}
-                onChange={reloadAndPublish}
-              />
-            ))}
-          </div>
-        </div>
+      <div>
+        {sharedSlots.map((slot) => (
+          <SiteImageSlotEditor
+            key={slot.key}
+            slot={slot}
+            slotKey={slot.key}
+            rows={rows}
+            onChange={reloadAndPublish}
+          />
+        ))}
+        {houseSlots.map((slot) => (
+          <SiteImageSlotEditor
+            key={`${house}-${slot.key}`}
+            slot={slot}
+            slotKey={slot.key.replace("{house}", house)}
+            rows={rows}
+            onChange={reloadAndPublish}
+          />
+        ))}
       </div>
     </div>
   );
@@ -2220,7 +2574,7 @@ function SiteImageSlotEditor({
   };
 
   return (
-    <div className="rounded-[26px] border border-border bg-cream/60 p-4 shadow-[0_18px_35px_rgba(31,31,31,0.04)] md:p-5">
+    <div className="grid gap-4 border-b border-border py-5 last:border-0 md:grid-cols-[minmax(0,1fr)_240px]">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h4 className="font-heading text-lg text-foreground">{slot.label}</h4>
@@ -2251,7 +2605,7 @@ function SiteImageSlotEditor({
         </label>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-dashed border-gold/25 bg-card/80 p-3">
+      <div className="mb-4 border border-border bg-card p-3">
         <div className="mb-2 flex items-center justify-between gap-3">
           <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Current live image
@@ -2261,11 +2615,15 @@ function SiteImageSlotEditor({
               hasOverride ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-800"
             }`}
           >
-            {hasOverride ? "override active" : "default asset"}
+            {hasOverride ? "uploaded image" : "built-in default, not uploaded"}
           </span>
         </div>
-        <div className="overflow-hidden rounded-2xl border border-border bg-charcoal/5">
-          <img src={activeImageUrl} alt={slot.label} className="h-28 w-full object-cover" />
+        <div className="overflow-hidden border border-border bg-charcoal/5">
+          <img
+            src={activeImageUrl}
+            alt={slot.label}
+            className={`h-32 w-full ${slotKey.startsWith("logo.") ? "object-contain p-2" : "object-cover"}`}
+          />
         </div>
       </div>
 

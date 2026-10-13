@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { useSiteImage } from "@/lib/site-images-context";
-import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/nh-logo-transparent.png";
+import ghLogo from "@/assets/gh-logo-replacement.webp";
+import nhLogo from "@/assets/nh-logo-replacement.webp";
 
 const navLinks = [
   { to: "/home" as const, label: "Home" },

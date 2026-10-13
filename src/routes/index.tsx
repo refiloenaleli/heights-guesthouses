@@ -1,18 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import {
-  MapPin,
-  Star,
-  Building2,
-  Shield,
-} from "lucide-react";
-import { useRef, useState } from "react";
+import { MapPin, Star, Building2, Shield } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useGuestHouse, type GuestHouse } from "@/lib/guest-house-context";
 import { useSiteImage } from "@/lib/site-images-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
-import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/nh-logo-transparent.png";
+import ghLogo from "@/assets/gh-logo-replacement.webp";
+import nhLogo from "@/assets/nh-logo-replacement.webp";
 
 export const Route = createFileRoute("/")({
   component: PropertySelectPage,
@@ -22,21 +17,18 @@ const properties: {
   id: GuestHouse;
   name: string;
   description: string;
-  logo: string;
 }[] = [
   {
     id: "greater-heights",
     name: "Greater Heights Guest House",
     description:
       "Katlehong, Maseru — intimate stays, smaller meetings, corporate travellers. 10 rooms, up to 25 guests, 2 conference rooms.",
-    logo: ghLogo,
   },
   {
     id: "new-heights",
     name: "New Heights Guest House",
     description:
       "Khubetsoana, Lerakong, Maseru — larger stays, big conferences, events, group packages. 15 rooms, up to 45 guests, 1 conference room up to 300 delegates.",
-    logo: nhLogo,
   },
 ];
 
@@ -52,6 +44,22 @@ function PropertySelectPage() {
     "greater-heights": useSiteImage("logo.greater-heights", ghLogo),
     "new-heights": useSiteImage("logo.new-heights", nhLogo),
   };
+
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 767px)");
+    if (!mobile.matches) return;
+
+    const timer = window.setInterval(() => {
+      const nextSlide = (activeSlide + 1) % properties.length;
+      heroTrackRef.current?.scrollTo({
+        left: nextSlide * (heroTrackRef.current.clientWidth || 0),
+        behavior: "smooth",
+      });
+      setActiveSlide(nextSlide);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [activeSlide]);
 
   return (
     <>
@@ -73,7 +81,7 @@ function PropertySelectPage() {
             setActiveSlide(Math.min(1, Math.round(track.scrollLeft / track.clientWidth)));
           }}
           aria-label="Choose a guest house. Swipe to see both properties."
-          className="hero-property-track relative z-10 flex h-full flex-row overflow-x-auto snap-x snap-mandatory md:overflow-hidden"
+          className="hero-property-track relative z-10 flex h-full flex-row overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] md:overflow-hidden"
         >
           {properties.map((property) => (
             <div
@@ -102,7 +110,10 @@ function PropertySelectPage() {
             </div>
           ))}
         </div>
-        <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 md:hidden" aria-label="Hero slides">
+        <div
+          className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 md:hidden"
+          aria-label="Hero slides"
+        >
           {properties.map((property, index) => (
             <button
               key={property.id}

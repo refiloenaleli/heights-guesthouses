@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,7 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
  *   logo.greater-heights             — navbar / footer logo (Greater)
  *   logo.new-heights                 — navbar / footer logo (New)
  *   <house>.home.hero                — home hero background
- *   <house>.home.welcome             — home welcome gallery (multi-slot)
+ *   <house>.accommodation.hero       — accommodation page hero background
+ *   <house>.home.welcome.<n>         — home welcome images in display order
+ *   <house>.gallery.hero             — gallery page hero background
  *   <house>.home.dining_cta          — home dining call-to-action image
  *   <house>.about.hero               — about page hero background
  *   <house>.dining.hero              — dining page hero background
@@ -90,32 +93,35 @@ export function SiteImagesProvider({ children }: { children: ReactNode }) {
           .order("slot_key")
           .order("display_order")
           .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          // Table not migrated yet — fall back to defaults silently (warn once).
-          if (!warnedTableMissing) {
-            warnedTableMissing = true;
-            console.warn("site_images not available, using default assets:", error.message);
-          }
-          return;
-        }
+            if (cancelled) return;
+            if (error) {
+              // Table not migrated yet — fall back to defaults silently (warn once).
+              if (!warnedTableMissing) {
+                warnedTableMissing = true;
+                console.warn("site_images not available, using default assets:", error.message);
+              }
+              return;
+            }
 
-        const validRows = ((data as SiteImageRow[]) || []).filter((row) =>
-          isAllowedSiteImageUrl(row.image_url),
-        );
+            const validRows = ((data as SiteImageRow[]) || []).filter((row) =>
+              isAllowedSiteImageUrl(row.image_url),
+            );
 
-        if (!warnedInvalidUrls && validRows.length !== ((data as SiteImageRow[]) || []).length) {
-          warnedInvalidUrls = true;
-          console.warn(
-            "Ignoring invalid site image URLs that do not match the configured Supabase project.",
-          );
-        }
+            if (
+              !warnedInvalidUrls &&
+              validRows.length !== ((data as SiteImageRow[]) || []).length
+            ) {
+              warnedInvalidUrls = true;
+              console.warn(
+                "Ignoring invalid site image URLs that do not match the configured Supabase project.",
+              );
+            }
 
-        const map: SiteImagesMap = {};
-        for (const row of validRows) {
-          (map[row.slot_key] ||= []).push(row);
-        }
-        setImages(map);
+            const map: SiteImagesMap = {};
+            for (const row of validRows) {
+              (map[row.slot_key] ||= []).push(row);
+            }
+            setImages(map);
           }),
       ).catch(() => undefined);
     };
@@ -132,19 +138,8 @@ export function SiteImagesProvider({ children }: { children: ReactNode }) {
 }
 
 /** Returns the override URL for a single-image slot, or `fallback`. */
-const SLOT_KEY_ALIASES: Record<string, string[]> = {
-  "about.hero": ["about.hero", "greater-heights.about.hero", "new-heights.about.hero"],
-};
-
 function resolveSlotRows(images: SiteImagesMap, slotKey: string): SiteImageRow[] {
-  const aliases = SLOT_KEY_ALIASES[slotKey] || [slotKey];
-  for (const alias of aliases) {
-    const rows = images[alias];
-    if (rows && rows.length > 0) {
-      return rows;
-    }
-  }
-  return [];
+  return images[slotKey] || [];
 }
 
 export function useSiteImage(slotKey: string, fallback: string): string {
@@ -169,8 +164,6 @@ export function useSiteImageSet(
   slots: {
     slotKey: string;
     fallback: string;
-    legacySlotKey?: string;
-    legacyIndex?: number;
   }[],
 ): string[] {
   const images = useContext(SiteImagesContext);
@@ -178,11 +171,7 @@ export function useSiteImageSet(
     () =>
       slots.map((slot) => {
         const rows = resolveSlotRows(images, slot.slotKey);
-        if (rows[0]?.image_url) return rows[0].image_url;
-        const legacyRows = slot.legacySlotKey
-          ? resolveSlotRows(images, slot.legacySlotKey)
-          : [];
-        return legacyRows[slot.legacyIndex ?? 0]?.image_url || slot.fallback;
+        return rows[0]?.image_url || slot.fallback;
       }),
     [images, slots],
   );

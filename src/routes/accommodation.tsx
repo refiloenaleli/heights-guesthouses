@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { AirVent, Building2, Coffee, Refrigerator, Users, ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
+import { useSiteImage } from "@/lib/site-images-context";
 import { supabase } from "@/integrations/supabase/client";
 import { RoomCard } from "@/components/RoomCard";
 import { RoomModal } from "@/components/RoomModal";
@@ -190,7 +191,10 @@ function AccommodationPage() {
   };
 
   const accommodationRooms = rooms.filter((room) => room.room_type !== "Conference & Banqueting");
-  const heroImage = imageFor(activeHouse === "greater-heights" ? "Executive Room" : "Couple Room");
+  const heroImage = useSiteImage(
+    `${activeHouse}.accommodation.hero`,
+    imageFor(activeHouse === "greater-heights" ? "Executive Room" : "Couple Room"),
+  );
 
   return (
     <>

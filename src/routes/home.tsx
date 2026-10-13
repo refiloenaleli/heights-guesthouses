@@ -34,8 +34,8 @@ import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
 import nhCoupleRoom from "@/assets/nh-couple-room.jpg";
 import nhSharingRoom from "@/assets/nh-sharing-room.jpg";
 import nhDining2 from "@/assets/nh-dining2.jpg";
-import ghLogo from "@/assets/gh-logo.jpg";
-import nhLogo from "@/assets/nh-logo-transparent.png";
+import ghLogo from "@/assets/gh-logo-replacement.webp";
+import nhLogo from "@/assets/nh-logo-replacement.webp";
 
 export const Route = createFileRoute("/home")({
   component: HomePage,
@@ -82,8 +82,6 @@ function HomePage() {
     welcomeFallbacks.map((fallback, index) => ({
       slotKey: `${activeHouse}.home.welcome.${index + 1}`,
       fallback,
-      legacySlotKey: `${activeHouse}.home.welcome`,
-      legacyIndex: index,
     })),
   );
   const diningImage = useSiteImage(

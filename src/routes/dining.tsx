@@ -17,15 +17,105 @@ type DiningBanner = Tables<"dining_banners">;
 type MenuImage = Tables<"menu_images">;
 
 const menuSeed: Omit<MenuItem, "id" | "guest_house">[] = [
-  { name: "Full English Breakfast", description: "Eggs, bacon, sausage, toast, grilled tomato", price: "M85", category: "breakfast", display_order: 0, is_available: true, created_at: "", updated_at: "" },
-  { name: "Continental Breakfast", description: "Croissants, fruit, yogurt, cereals, juice", price: "M65", category: "breakfast", display_order: 1, is_available: true, created_at: "", updated_at: "" },
-  { name: "African Breakfast", description: "Traditional porridge, bread, eggs, tea", price: "M55", category: "breakfast", display_order: 2, is_available: true, created_at: "", updated_at: "" },
-  { name: "Grilled Chicken Salad", description: "Mixed greens, grilled chicken, vinaigrette", price: "M95", category: "lunch", display_order: 0, is_available: true, created_at: "", updated_at: "" },
-  { name: "Club Sandwich", description: "Triple-decker with fries and coleslaw", price: "M85", category: "lunch", display_order: 1, is_available: true, created_at: "", updated_at: "" },
-  { name: "Beef Stew", description: "Slow-cooked beef with seasonal vegetables, rice", price: "M110", category: "lunch", display_order: 2, is_available: true, created_at: "", updated_at: "" },
-  { name: "Grilled Lamb Chops", description: "Herb-crusted lamb with roasted vegetables", price: "M165", category: "dinner", display_order: 0, is_available: true, created_at: "", updated_at: "" },
-  { name: "Pan-Seared Salmon", description: "With lemon butter sauce and mashed potatoes", price: "M155", category: "dinner", display_order: 1, is_available: true, created_at: "", updated_at: "" },
-  { name: "Vegetable Stir-Fry", description: "Fresh seasonal vegetables with rice or noodles", price: "M95", category: "dinner", display_order: 2, is_available: true, created_at: "", updated_at: "" },
+  {
+    name: "Full English Breakfast",
+    description: "Eggs, bacon, sausage, toast, grilled tomato",
+    price: "M85",
+    category: "breakfast",
+    display_order: 0,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
+  {
+    name: "Continental Breakfast",
+    description: "Croissants, fruit, yogurt, cereals, juice",
+    price: "M65",
+    category: "breakfast",
+    display_order: 1,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
+  {
+    name: "African Breakfast",
+    description: "Traditional porridge, bread, eggs, tea",
+    price: "M55",
+    category: "breakfast",
+    display_order: 2,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
+  {
+    name: "Grilled Chicken Salad",
+    description: "Mixed greens, grilled chicken, vinaigrette",
+    price: "M95",
+    category: "lunch",
+    display_order: 0,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
+  {
+    name: "Club Sandwich",
+    description: "Triple-decker with fries and coleslaw",
+    price: "M85",
+    category: "lunch",
+    display_order: 1,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
+  {
+    name: "Beef Stew",
+    description: "Slow-cooked beef with seasonal vegetables, rice",
+    price: "M110",
+    category: "lunch",
+    display_order: 2,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
+  {
+    name: "Grilled Lamb Chops",
+    description: "Herb-crusted lamb with roasted vegetables",
+    price: "M165",
+    category: "dinner",
+    display_order: 0,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
+  {
+    name: "Pan-Seared Salmon",
+    description: "With lemon butter sauce and mashed potatoes",
+    price: "M155",
+    category: "dinner",
+    display_order: 1,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
+  {
+    name: "Vegetable Stir-Fry",
+    description: "Fresh seasonal vegetables with rice or noodles",
+    price: "M95",
+    category: "dinner",
+    display_order: 2,
+    is_available: true,
+    created_at: "",
+    updated_at: "",
+    image_url: null,
+  },
 ];
 
 function getFallbackMenu(guestHouse: string): MenuItem[] {
@@ -33,6 +123,7 @@ function getFallbackMenu(guestHouse: string): MenuItem[] {
     ...item,
     id: `sample-${guestHouse}-${index}`,
     guest_house: guestHouse,
+    image_url: null,
   }));
 }
 
@@ -65,9 +156,9 @@ function DiningPage() {
         .eq("guest_house", activeHouse)
         .order("display_order")
         .then(({ data, error }) => {
-        if (cancelled || error || !data?.length) return;
-        const availableItems = data.filter((item) => item.is_available);
-        if (!availableItems.length) return;
+          if (cancelled || error || !data?.length) return;
+          const availableItems = data.filter((item) => item.is_available);
+          if (!availableItems.length) return;
           setMenuItems(availableItems);
           setUsingSampleMenu(false);
         }),
@@ -142,15 +233,17 @@ function DiningPage() {
     mealImageFallbacks.map((fallback, index) => ({
       slotKey: `${activeHouse}.dining.meals.${index + 1}`,
       fallback,
-      legacySlotKey: `${activeHouse}.dining.meals`,
-      legacyIndex: index,
     })),
   );
   return (
     <>
       {/* Hero Section */}
       <section className="photo-hero photo-hero-fixed-nav relative -mt-[60px] h-[85vh] min-h-[600px]">
-        <img src={heroImage} alt="Dining" className="photo-hero-image absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={heroImage}
+          alt="Dining"
+          className="photo-hero-image absolute inset-0 h-full w-full object-cover"
+        />
         <div className="photo-hero-overlay hero-overlay absolute inset-0" />
         <div className="photo-hero-content relative z-10 flex h-full flex-col items-center justify-center text-center px-4">
           <motion.div
@@ -356,9 +449,19 @@ function DiningPage() {
                 <div className="space-y-4">
                   {(grouped[meal] || []).map((item) => (
                     <div key={item.id} className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="text-sm font-semibold text-foreground">{item.name}</h3>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{item.description}</p>
+                      <div className="flex min-w-0 items-start gap-3">
+                        {item.image_url && (
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            loading="lazy"
+                            className="h-14 w-16 shrink-0 object-cover"
+                          />
+                        )}
+                        <div>
+                          <h3 className="text-sm font-semibold text-foreground">{item.name}</h3>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{item.description}</p>
+                        </div>
                       </div>
                       <span className="whitespace-nowrap text-sm font-semibold text-gold-dark">
                         {item.price}

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { useSiteImage } from "@/lib/site-images-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
@@ -17,39 +17,60 @@ function AboutPage() {
   const firstHeroImage = useSiteImage("about.hero", ghExterior);
   const secondHeroImage = useSiteImage("about.slide.2", ghCoupleRoom);
   const thirdHeroImage = useSiteImage("about.slide.3", nhExterior);
+  const slideTrackRef = useRef<HTMLDivElement>(null);
   const slides = [
-    { image: firstHeroImage, alt: "Greater Heights Guest House exterior", property: "Greater Heights" },
-    { image: secondHeroImage, alt: "Guest room at Greater Heights Guest House", property: "Greater Heights" },
+    {
+      image: firstHeroImage,
+      alt: "Greater Heights Guest House exterior",
+      property: "Greater Heights",
+    },
+    {
+      image: secondHeroImage,
+      alt: "Guest room at Greater Heights Guest House",
+      property: "Greater Heights",
+    },
     { image: thirdHeroImage, alt: "New Heights Guest House exterior", property: "New Heights" },
   ];
   const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % slides.length);
+      setActiveSlide((current) => {
+        const next = (current + 1) % slides.length;
+        slideTrackRef.current?.scrollTo({
+          left: next * (slideTrackRef.current.clientWidth || 0),
+          behavior: "smooth",
+        });
+        return next;
+      });
     }, 6000);
     return () => window.clearInterval(timer);
   }, [slides.length]);
 
-  const moveSlide = (direction: -1 | 1) => {
-    setActiveSlide((current) => (current + direction + slides.length) % slides.length);
-  };
-
   return (
     <>
       <section className="photo-hero relative min-h-[520px] overflow-hidden bg-charcoal">
-        {slides.map((slide, index) => (
-          <img
-            key={slide.image}
-            src={slide.image}
-            alt={slide.alt}
-            aria-hidden={activeSlide !== index}
-            className={`photo-hero-image absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-              activeSlide === index ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))}
-        <div className="photo-hero-overlay hero-overlay absolute inset-0" />
+        <div
+          ref={slideTrackRef}
+          onScroll={(event) => {
+            const track = event.currentTarget;
+            setActiveSlide(
+              Math.min(slides.length - 1, Math.round(track.scrollLeft / track.clientWidth)),
+            );
+          }}
+          aria-label="About the Heights properties"
+          className="absolute inset-0 z-0 flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
+        >
+          {slides.map((slide) => (
+            <div
+              key={slide.image}
+              className="relative h-full min-h-[520px] w-full shrink-0 snap-center"
+            >
+              <img src={slide.image} alt={slide.alt} className="h-full w-full object-cover" />
+            </div>
+          ))}
+        </div>
+        <div className="photo-hero-overlay hero-overlay pointer-events-none absolute inset-0 z-[1]" />
         <div className="photo-hero-content relative z-10 mx-auto flex min-h-[520px] max-w-6xl items-end px-4 pb-16 md:pb-24">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -65,21 +86,23 @@ function AboutPage() {
             </p>
           </motion.div>
         </div>
-        <div className="absolute bottom-14 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3">
-          <button
-            type="button"
-            onClick={() => moveSlide(-1)}
-            aria-label="Previous property photo"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-charcoal/45 text-white backdrop-blur-sm transition hover:bg-charcoal/75"
+        <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
+          <div
+            className="flex items-center gap-2"
+            role="group"
+            aria-label="Choose a property photo"
           >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <div className="flex items-center gap-2" role="group" aria-label="Choose a property photo">
             {slides.map((slide, index) => (
               <button
                 key={`${slide.property}-${index}`}
                 type="button"
-                onClick={() => setActiveSlide(index)}
+                onClick={() => {
+                  slideTrackRef.current?.scrollTo({
+                    left: index * (slideTrackRef.current.clientWidth || 0),
+                    behavior: "smooth",
+                  });
+                  setActiveSlide(index);
+                }}
                 aria-label={`Show ${slide.property} photo ${index + 1}`}
                 aria-current={activeSlide === index ? "true" : undefined}
                 className={`h-2.5 rounded-full transition-all ${
@@ -88,28 +111,20 @@ function AboutPage() {
               />
             ))}
           </div>
-          <button
-            type="button"
-            onClick={() => moveSlide(1)}
-            aria-label="Next property photo"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-charcoal/45 text-white backdrop-blur-sm transition hover:bg-charcoal/75"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
         </div>
       </section>
-        {/* Back to Properties */}
-        <div className="bg-charcoal/95 border-b border-gold/10">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              All Properties
-            </Link>
-          </div>
+      {/* Back to Properties */}
+      <div className="bg-charcoal/95 border-b border-gold/10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold-light/70 hover:text-gold transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            All Properties
+          </Link>
         </div>
+      </div>
 
       <section className="bg-cream py-14 sm:py-20">
         <div className="mx-auto max-w-5xl px-4">
@@ -126,9 +141,9 @@ function AboutPage() {
             </p>
             <p>
               Today, Greater Heights and New Heights operate together as one group, under shared
-              ownership and management. The two properties are not in competition with one another
-              — they are marketed together, so that a client’s needs, from an intimate weekend stay
-              to a large conference, can be met from within the same trusted group. Both properties
+              ownership and management. The two properties are not in competition with one another —
+              they are marketed together, so that a client’s needs, from an intimate weekend stay to
+              a large conference, can be met from within the same trusted group. Both properties
               welcome individual guests, couples, and small stays as standard; group and event
               bookings are offered as an additional package for clients who need it.
             </p>

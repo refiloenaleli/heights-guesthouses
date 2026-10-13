@@ -157,6 +157,7 @@ export type Database = {
           display_order: number;
           guest_house: string;
           id: string;
+          image_url: string | null;
           is_available: boolean;
           name: string;
           price: string;
@@ -169,6 +170,7 @@ export type Database = {
           display_order?: number;
           guest_house: string;
           id?: string;
+          image_url?: string | null;
           is_available?: boolean;
           name: string;
           price: string;
@@ -181,6 +183,7 @@ export type Database = {
           display_order?: number;
           guest_house?: string;
           id?: string;
+          image_url?: string | null;
           is_available?: boolean;
           name?: string;
           price?: string;

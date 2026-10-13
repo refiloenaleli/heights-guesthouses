@@ -4,23 +4,37 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { getPropertyGalleryImages } from "@/lib/site-gallery";
-import { useSiteImageSet } from "@/lib/site-images-context";
+import { useSiteImage, useSiteImageSet } from "@/lib/site-images-context";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/gallery")({
   component: GalleryPage,
 });
 
-const defaultCategories = ["All", "Rooms", "Dining", "Exterior", "Interior"];
+const defaultCategories = ["All", "Rooms", "Dining", "Exterior", "Interior"] as const;
+
 type GalleryImage = {
   src: string;
   alt: string;
   category: string;
 };
 
+function normalizeGalleryCategory(category: string | null | undefined): string {
+  const value = (category || "").trim();
+  if (!value) return "General";
+  const lower = value.toLowerCase();
+  if (["exterior", "outside"].includes(lower)) return "Exterior";
+  if (["interior", "inside"].includes(lower)) return "Interior";
+  if (["room", "rooms", "accommodation"].includes(lower)) return "Rooms";
+  if (["dining", "restaurant", "food"].includes(lower)) return "Dining";
+  return value;
+}
+
 function GalleryPage() {
   const { houseName, activeHouse } = useGuestHouse();
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState<(typeof defaultCategories)[number] | string>(
+    "All",
+  );
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<GalleryImage[]>([]);
   const propertyDefaults = getPropertyGalleryImages(activeHouse);
@@ -30,6 +44,7 @@ function GalleryPage() {
       fallback: image.src,
     })),
   );
+  const galleryHero = useSiteImage(`${activeHouse}.gallery.hero`, propertyDefaults[0]?.src || "");
 
   useEffect(() => {
     let ignore = false;
@@ -48,8 +63,8 @@ function GalleryPage() {
         setUploadedImages(
           data.map((image) => ({
             src: image.image_url,
-            alt: `${image.guest_house === "greater-heights" ? "Greater Heights" : "New Heights"} — ${image.alt_text}`,
-            category: image.category,
+            alt: `${image.guest_house === "greater-heights" ? "Greater Heights" : "New Heights"} — ${image.alt_text || "Gallery image"}`,
+            category: normalizeGalleryCategory(image.category),
           })),
         );
       });
@@ -64,12 +79,24 @@ function GalleryPage() {
     alt: image.alt,
     category: image.category,
   }));
-  const images = [...builtInImages, ...uploadedImages];
+
+  const allImages = [...builtInImages, ...uploadedImages].filter(
+    (image, index, list) =>
+      list.findIndex(
+        (candidate) =>
+          candidate.src === image.src &&
+          candidate.alt === image.alt &&
+          candidate.category === image.category,
+      ) === index,
+  );
+
   const categories = Array.from(
-    new Set([...defaultCategories, ...images.map((image) => image.category)]),
+    new Set([...defaultCategories, ...allImages.map((image) => image.category)]),
   );
   const filtered =
-    activeCategory === "All" ? images : images.filter((img) => img.category === activeCategory);
+    activeCategory === "All"
+      ? allImages
+      : allImages.filter((img) => normalizeGalleryCategory(img.category) === activeCategory);
 
   return (
     <>
@@ -85,13 +112,23 @@ function GalleryPage() {
           </Link>
         </div>
       </div>
-      <section className="bg-charcoal px-4 pb-20 pt-36 text-center">
-        <span className="section-label text-gold-light">A GLIMPSE OF THE HEIGHTS</span>
-        <h1 className="section-title text-warm-white mt-2">See where you'll stay.</h1>
-        <p className="mt-3 max-w-xl mx-auto text-sm text-warm-white/60">
-          From quiet corners and comfortable rooms to shared tables, celebrations and conference
-          spaces — take a look around.
-        </p>
+      <section className="photo-hero photo-hero-fixed-nav relative -mt-[60px] flex min-h-[440px] items-end overflow-hidden bg-charcoal px-4 pb-16 pt-36 sm:min-h-[520px] sm:pb-20">
+        <img
+          src={galleryHero}
+          alt={`${houseName} gallery`}
+          className="photo-hero-image absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="photo-hero-overlay hero-overlay pointer-events-none absolute inset-0" />
+        <div className="relative z-10 mx-auto w-full max-w-6xl">
+          <span className="section-label text-gold-light">
+            A GLIMPSE OF {houseName.toUpperCase()}
+          </span>
+          <h1 className="section-title mt-2 text-warm-white">See where you'll stay.</h1>
+          <p className="mt-3 max-w-xl text-sm text-warm-white/85">
+            From quiet corners and comfortable rooms to shared tables, celebrations and conference
+            spaces — take a look around.
+          </p>
+        </div>
       </section>
 
       <section className="py-16 bg-background">

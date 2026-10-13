@@ -34,8 +34,8 @@ import ghOutdoorDining from "@/assets/gh-outdoor-dining.jpg";
 import nhCoupleRoom from "@/assets/nh-couple-room.jpg";
 import nhSharingRoom from "@/assets/nh-sharing-room.jpg";
 import nhDining2 from "@/assets/nh-dining2.jpg";
-import ghLogo from "@/assets/gh-logo-replacement.webp";
-import nhLogo from "@/assets/nh-logo-replacement.webp";
+import ghLogo from "@/assets/gh-logo-transparent.png";
+import nhLogo from "@/assets/nh-logo-transparent.png";
 
 export const Route = createFileRoute("/home")({
   component: HomePage,

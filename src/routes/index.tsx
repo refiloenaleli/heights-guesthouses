@@ -6,8 +6,8 @@ import { useGuestHouse, type GuestHouse } from "@/lib/guest-house-context";
 import { useSiteImage } from "@/lib/site-images-context";
 import ghExterior from "@/assets/gh-exterior.jpg";
 import nhExterior1 from "@/assets/nh-exterior1.jpg";
-import ghLogo from "@/assets/gh-logo-replacement.webp";
-import nhLogo from "@/assets/nh-logo-replacement.webp";
+import ghLogo from "@/assets/gh-logo-transparent.png";
+import nhLogo from "@/assets/nh-logo-transparent.png";
 
 export const Route = createFileRoute("/")({
   component: PropertySelectPage,
@@ -184,7 +184,7 @@ function PropertySelectPage() {
                   <img
                     src={propertyLogos[property.id]}
                     alt={property.name}
-                    className={`h-14 w-14 shrink-0 rounded-full ${
+                    className={`property-logo-white h-14 w-14 shrink-0 rounded-full ${
                       property.id === "greater-heights"
                         ? "border-2 border-gold/70 p-1 object-cover ring-2 ring-gold/20"
                         : "object-contain"

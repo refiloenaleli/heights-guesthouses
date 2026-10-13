@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { useGuestHouse } from "@/lib/guest-house-context";
 import { useSiteImage } from "@/lib/site-images-context";
-import ghLogo from "@/assets/gh-logo-replacement.webp";
-import nhLogo from "@/assets/nh-logo-replacement.webp";
+import ghLogo from "@/assets/gh-logo-transparent.png";
+import nhLogo from "@/assets/nh-logo-transparent.png";
 
 export function Footer() {
   const { houseName, email, phoneNumber, address, activeHouse } = useGuestHouse();

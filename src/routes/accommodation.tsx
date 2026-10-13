@@ -115,7 +115,13 @@ function AccommodationPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setRooms(defaultRooms.map((room) => ({ ...room, id: `${activeHouse}-${room.room_type}` })));
+    const houseDefaultRooms =
+      activeHouse === "new-heights"
+        ? defaultRooms.filter((room) => room.room_type !== "Executive Room")
+        : defaultRooms;
+    setRooms(
+      houseDefaultRooms.map((room) => ({ ...room, id: `${activeHouse}-${room.room_type}` })),
+    );
     setUsingDefaultRooms(true);
 
     Promise.resolve(
@@ -125,26 +131,26 @@ function AccommodationPage() {
         .eq("guest_house", activeHouse)
         .order("display_order")
         .then(({ data }) => {
-        if (cancelled || !data?.length) return;
-        const savedRooms = data || [];
-        if (savedRooms.length) setUsingDefaultRooms(false);
-        const savedByType = new Map(savedRooms.map((room) => [room.room_type, room]));
-        setRooms(
-          defaultRooms.map((room) => {
-            const saved = savedByType.get(room.room_type);
-            if (!saved) return { ...room, id: `${activeHouse}-${room.room_type}` };
-            return {
-              id: saved.id,
-              room_type: saved.room_type,
-              price: saved.price,
-              price_note: saved.price_note ?? undefined,
-              description: saved.description,
-              long_description: saved.long_description ?? undefined,
-              bed_info: saved.bed_info ?? undefined,
-              features: saved.features,
-            };
-          }),
-        );
+          if (cancelled || !data?.length) return;
+          const savedRooms = data || [];
+          if (savedRooms.length) setUsingDefaultRooms(false);
+          const savedByType = new Map(savedRooms.map((room) => [room.room_type, room]));
+          setRooms(
+            houseDefaultRooms.map((room) => {
+              const saved = savedByType.get(room.room_type);
+              if (!saved) return { ...room, id: `${activeHouse}-${room.room_type}` };
+              return {
+                id: saved.id,
+                room_type: saved.room_type,
+                price: saved.price,
+                price_note: saved.price_note ?? undefined,
+                description: saved.description,
+                long_description: saved.long_description ?? undefined,
+                bed_info: saved.bed_info ?? undefined,
+                features: saved.features,
+              };
+            }),
+          );
         }),
     ).catch(() => undefined);
 
@@ -184,14 +190,14 @@ function AccommodationPage() {
   };
 
   const accommodationRooms = rooms.filter((room) => room.room_type !== "Conference & Banqueting");
-  const heroImage = imageFor("Executive Room");
+  const heroImage = imageFor(activeHouse === "greater-heights" ? "Executive Room" : "Couple Room");
 
   return (
     <>
       <section className="photo-hero photo-hero-fixed-nav relative min-h-[560px] overflow-hidden bg-charcoal">
         <img
           src={heroImage}
-          alt={`${houseName} executive room`}
+          alt={`${houseName} accommodation`}
           className="photo-hero-image absolute inset-0 h-full w-full object-cover"
         />
         <div className="photo-hero-overlay hero-overlay absolute inset-0" />

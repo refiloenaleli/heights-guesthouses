@@ -65,7 +65,7 @@ const features = [
 ];
 
 function HomePage() {
-  const { activeHouse, houseName, whatsappNumber, phoneNumber, address } = useGuestHouse();
+  const { activeHouse, houseName, whatsappNumbers, phoneNumber, address } = useGuestHouse();
   const heroLogo = useSiteImage(
     `logo.${activeHouse}`,
     activeHouse === "greater-heights" ? ghLogo : nhLogo,
@@ -466,21 +466,23 @@ function HomePage() {
                     : "Maseru, Lesotho"}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <a
-                    href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, I would like to make a booking at ${houseName}.`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-gold inline-flex items-center justify-center gap-2"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Book Now — WhatsApp
-                  </a>
+                  {whatsappNumbers.map((whatsappNumber) => (
+                    <a
+                      key={whatsappNumber}
+                      href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hello, I would like to make a booking at ${houseName}.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-gold inline-flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="h-4 w-4" /> WhatsApp {whatsappNumber}
+                    </a>
+                  ))}
                   <a
                     href={`tel:${phoneNumber.replace(/[^0-9+]/g, "")}`}
                     className="btn-gold-outline inline-flex items-center justify-center gap-2"
                     aria-label={`Call us at ${phoneNumber}`}
                   >
-                    <Phone className="h-4 w-4" />
+                    <Phone className="h-4 w-4" /> {phoneNumber}
                   </a>
                 </div>
               </div>
@@ -491,7 +493,7 @@ function HomePage() {
 
       {/* WhatsApp Float */}
       <a
-        href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hello, I would like to make a booking.")}`}
+        href={`https://wa.me/${whatsappNumbers[0]?.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hello, I would like to make a booking.")}`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-lg hover:scale-110 transition-transform"

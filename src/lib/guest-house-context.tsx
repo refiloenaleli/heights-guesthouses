@@ -7,7 +7,7 @@ interface GuestHouseContextType {
   activeHouse: GuestHouse;
   setActiveHouse: (house: GuestHouse) => void;
   houseName: string;
-  whatsappNumber: string;
+  whatsappNumbers: string[];
   phoneNumber: string;
   email: string;
   address: string;
@@ -28,9 +28,9 @@ const houseData: Record<
   },
   "new-heights": {
     name: "New Heights Guest House",
-    whatsapp: "+266 5894 3042",
-    phone: "+266 2232 0655",
-    email: "greaterheightsbnb@gmail.com",
+    whatsapp: "+266 57035583 / +266 63490001",
+    phone: "+266 22320656",
+    email: "newheightsguesthouse@gmail.com",
     address: "Maseru, Lesotho",
   },
 };
@@ -80,6 +80,7 @@ export function GuestHouseProvider({ children }: { children: ReactNode }) {
   }, [activeHouse]);
 
   const data = { ...houseData[activeHouse], ...contactOverrides };
+  const whatsappNumbers = data.whatsapp.split(/[;,/]+/).map((number) => number.trim()).filter(Boolean);
 
   return (
     <GuestHouseContext.Provider
@@ -87,7 +88,7 @@ export function GuestHouseProvider({ children }: { children: ReactNode }) {
         activeHouse,
         setActiveHouse,
         houseName: data.name,
-        whatsappNumber: data.whatsapp,
+        whatsappNumbers,
         phoneNumber: data.phone,
         email: data.email,
         address: data.address,

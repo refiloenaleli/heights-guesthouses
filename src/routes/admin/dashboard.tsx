@@ -77,7 +77,6 @@ const DEFAULT_ROOM_IMAGE_BY_HOUSE: Record<string, Record<string, string>> = {
     "Single Room": nhSingleRoom,
     "Couple Room": nhCoupleRoom,
     "Sharing Room": nhSharingRoom,
-    "Executive Room": nhSingleRoom,
     "Conference & Banqueting": nhDining1,
   },
 };
@@ -1272,7 +1271,13 @@ function RoomImagesPanel({ house }: { house: string }) {
       .select("room_type")
       .eq("guest_house", house)
       .order("display_order");
-    const types = [...new Set([...EDITABLE_ROOM_TYPES, ...(prices || []).map((p) => p.room_type)])];
+    const editableRoomTypes =
+      house === "new-heights"
+        ? EDITABLE_ROOM_TYPES.filter((type) => type !== "Executive Room")
+        : EDITABLE_ROOM_TYPES;
+    const types = [
+      ...new Set([...editableRoomTypes, ...(prices || []).map((p) => p.room_type)]),
+    ].filter((type) => house !== "new-heights" || type !== "Executive Room");
     setRoomTypes(types);
     // Keep the current selection only if it exists in this house's rooms,
     // otherwise fall back to the first available room type.

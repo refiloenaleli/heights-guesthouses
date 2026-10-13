@@ -11,7 +11,7 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
-  const { houseName, email, whatsappNumber, phoneNumber, address, activeHouse } = useGuestHouse();
+  const { houseName, email, whatsappNumbers, phoneNumber, address, activeHouse } = useGuestHouse();
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -41,9 +41,7 @@ function ContactPage() {
     setTimeout(() => setSubmitted(false), 6000);
   };
 
-  const whatsappLink = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-    `Hello, I would like to inquire about ${houseName}.`,
-  )}`;
+  const whatsappMessage = `Hello, I would like to inquire about ${houseName}.`;
 
   return (
     <>
@@ -89,7 +87,7 @@ function ContactPage() {
                   className="flex items-center gap-3 text-sm text-foreground hover:text-gold-dark"
                   aria-label={`Call ${houseName} at ${phoneNumber}`}
                 >
-                  <Phone className="h-5 w-5 text-gold-dark" />
+                  <Phone className="h-5 w-5 text-gold-dark" /> {phoneNumber}
                 </a>
                 <a
                   href={`mailto:${email}`}
@@ -102,14 +100,19 @@ function ContactPage() {
                 </div>
               </div>
 
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center gap-2 btn-gold"
-              >
-                <MessageCircle className="h-4 w-4" /> Chat on WhatsApp
-              </a>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {whatsappNumbers.map((whatsappNumber) => (
+                  <a
+                    key={whatsappNumber}
+                    href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(whatsappMessage)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 btn-gold"
+                  >
+                    <MessageCircle className="h-4 w-4" /> WhatsApp {whatsappNumber}
+                  </a>
+                ))}
+              </div>
 
               <div className="mt-8">
                 <PropertyMap activeHouse={activeHouse} houseName={houseName} />

@@ -18,7 +18,11 @@ const roomTypes = [
 ];
 
 function BookingPage() {
-  const { houseName, whatsappNumber, email, activeHouse } = useGuestHouse();
+  const { houseName, whatsappNumbers, email, activeHouse } = useGuestHouse();
+  const availableRoomTypes =
+    activeHouse === "new-heights"
+      ? roomTypes.filter((room) => !room.startsWith("Executive Room"))
+      : roomTypes;
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -68,7 +72,7 @@ function BookingPage() {
     }
   };
 
-  const handleWhatsApp = async () => {
+  const handleWhatsApp = async (whatsappNumber: string) => {
     const url = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(bookingMessage)}`;
     setSubmitting(true);
     await saveBooking();
@@ -234,7 +238,7 @@ function BookingPage() {
                       onChange={handleChange}
                       className="w-full min-w-0 border border-border bg-background px-3 py-3 text-sm text-foreground focus:outline-none focus:border-gold-dark sm:px-4"
                     >
-                      {roomTypes.map((r) => (
+                      {availableRoomTypes.map((r) => (
                         <option key={r} value={r}>
                           {r}
                         </option>
@@ -274,14 +278,17 @@ function BookingPage() {
                 </div>
 
                 <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-                  <button
-                    onClick={handleWhatsApp}
-                    type="button"
-                    disabled={submitting || !form.name || !form.email || !form.phone || !form.checkIn || !form.checkOut}
-                    className="flex-1 btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    Book via WhatsApp
-                  </button>
+                  {whatsappNumbers.map((whatsappNumber) => (
+                    <button
+                      key={whatsappNumber}
+                      onClick={() => handleWhatsApp(whatsappNumber)}
+                      type="button"
+                      disabled={submitting || !form.name || !form.email || !form.phone || !form.checkIn || !form.checkOut}
+                      className="flex-1 btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      WhatsApp {whatsappNumber}
+                    </button>
+                  ))}
                   <button
                     onClick={handleEmail}
                     type="button"

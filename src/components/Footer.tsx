@@ -6,7 +6,7 @@ import ghLogo from "@/assets/gh-logo.jpg";
 import nhLogo from "@/assets/inspiration pitures/WhatsApp Image 2026-08-22 at 1.11.41 AM.jpeg";
 
 export function Footer() {
-  const { houseName, email, whatsappNumber, phoneNumber, address, activeHouse } = useGuestHouse();
+  const { houseName, email, phoneNumber, address, activeHouse } = useGuestHouse();
   const logo = useSiteImage(
     `logo.${activeHouse}`,
     activeHouse === "greater-heights" ? ghLogo : nhLogo,
@@ -54,7 +54,7 @@ export function Footer() {
                 className="flex items-center gap-2 text-sm text-warm-white/60 hover:text-gold-light"
                 aria-label={`Call us at ${phoneNumber}`}
               >
-                <Phone className="h-4 w-4 text-gold-dark" />
+                <Phone className="h-4 w-4 text-gold-dark" /> {phoneNumber}
               </a>
               <a
                 href={`mailto:${email}`}

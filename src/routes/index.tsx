@@ -186,7 +186,7 @@ function PropertySelectPage() {
                     alt={property.name}
                     className={`property-logo-black h-14 w-14 shrink-0 rounded-full ${
                       property.id === "greater-heights"
-                        ? "border-2 border-gold/70 p-1 object-cover ring-2 ring-gold/20"
+                        ? "object-cover"
                         : "object-contain"
                     }`}
                     width={56}

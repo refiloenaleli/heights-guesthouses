@@ -265,8 +265,8 @@
     filter: brightness(0) invert(1) drop-shadow(0 3px 10px rgb(0 0 0 / 72%));
   }
 
-  .property-logo-white {
-    filter: brightness(0) invert(1);
+  .property-logo-black {
+    filter: brightness(0);
   }
 
   @media (max-width: 767px) {

@@ -184,11 +184,7 @@ function PropertySelectPage() {
                   <img
                     src={propertyLogos[property.id]}
                     alt={property.name}
-                    className={`property-logo-black h-14 w-14 shrink-0 rounded-full ${
-                      property.id === "greater-heights"
-                        ? "object-cover"
-                        : "object-contain"
-                    }`}
+                    className="property-logo-black h-14 w-14 shrink-0 object-contain"
                     width={56}
                     height={56}
                   />
